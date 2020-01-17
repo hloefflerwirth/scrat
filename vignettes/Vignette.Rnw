@@ -1,0 +1,364 @@
+%\VignetteIndexEntry{The scrat users guide}
+\documentclass{article}
+\usepackage{hyperref}
+\usepackage[authoryear,round]{natbib}
+\usepackage{graphicx}
+\usepackage{float}
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+\title{The scrat Package}
+\author{Henry L\"offler-Wirth, Gray Camp}
+\maketitle
+Single cell RNA-seq revolutionizes molecular biology and provides an incredible amount of data with unmatched resolution. On the other hand, these techniques pose elementary methodological challenges simply by the huge and ever increasing amount of data produced: researchers need adequate tools to extract the information content of the data in an effective and intelligent way. This includes algorithmic tasks such as data compression and filtering, feature selection, linkage with the functional context, and proper visualization.
+Especially, the latter task is very important because an intuitive visualization of massive data clearly promotes quality control, the discovery of their intrinsic structure, functional data mining and finally the generation of hypotheses.
+
+We aim at adapting a holistic view on the gene activation patterns as seen by expression studies rather than to consider single genes or single pathways. This view requires methods which support an integrative and reductionist approach to disentangle the complex gene-phenotype interactions related to cancer genesis and progression. With this motivation we implemented an analysis pipeline based on data processing by a Self-Organizing Map (SOM) \citep{Wirth2011}\citep{Wirth2012}\citep{Loffler-Wirth2015}. This approach simultaneously searches for features which are differentially expressed and correlated in their profiles in the set of cells studied. We include functional information about such co-expressed genes to extract distinct functional modules inherent in the data and attribute them to particular types of cellular and biological processes such as inflammation, cell division, etc. This modular view facilitates the understanding of the gene expression patterns characterizing different celltypes on the molecular level. Importantly, SOMs preserve the information richness of the original data allowing the detailed study of the cells after SOM clustering.
+
+A central role in our analysis is played by the so-called expression portraits which serve as intuitive and easy-to-interpret fingerprints of the transcriptional activity of the cells. Their analysis provides a holistic view on the expression patterns activated in a particular cell. Importantly, they also allow identification and interpretation of outliers and, thus, improve data quality \citep{Hopp2013a}\citep{Hopp2013}.
+
+\section{Showcase example: Macrophage responses to stimulation}
+
+Read count data of stimulated macrophages were downloaded from Gene Expression Omnibus repository (\href{http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE79363}%
+{GEO accession no. GSE79363}). In 60 cells about 44,000 transcripts were measured using RNA-seq (Illumina MiSeq).
+
+\subsection{Setting up the environment}
+
+In order to set the analysis parameters and to create the enclosing environment
+it is obligatory to use \textbf{scrat.new}. If any parameter is not
+explicitly defined, default values will be used (see Parameters section):
+  
+<<>>=
+library(scrat)
+env <- scrat.new(list(dataset.name="Macrophages Showcase"))
+@
+  
+scrat requires input of mapped read counts or preprocessed expression data. Additionally, it is recommended to provide group information about the cells (e.g. celltypes), otherwise groups will be assigned automatically based on cells' expression landscapes.
+
+\subsection{Read count data}
+
+Read count data is to be provided as \textit{scater::SCESet} object, or as two-dimensional numerical matrix (columns and rows represent the cells and genes, respectively). scrat read count preprocessing should be activated in parameter list as described below.
+
+<<>>=
+data(macro.SCESet.counts)
+macro.SCESet.counts
+
+env$indata <- macro.SCESet.counts
+@
+
+\subsection{Expression data}
+
+If appropriate preprocessing of count data was already applied, scrat also accepts expression data as input. We recommend to use expression values in logarithmic scale. scrat read count preprocessing should be deactivated in this case.\\
+The package accepts two formats: Firstly a scater SCESet object \citep{McCarthy2016}, and secondly a two-dimensional numerical matrix (columns and rows represent the cells and genes, respectively).
+
+<<>>=
+data(macro.SCESet.exprs)
+macro.SCESet.exprs
+
+env$indata <- macro.SCESet.exprs
+@
+
+
+\subsection{Group information}
+
+Each cell should be assigned to a distinct group and a corresponding color to improve data visualization and result presentations. If only group labels are prodived, colors will be assigned using a standard color scheme. If no group labels are given, scrat will apply unsupervised grouping of cells according to their expression module activation patterns.\\
+\\
+Both, group labels and colors are to be provided as charater vector of length number of cells.They can be either assigned as an object in the scrat environment, or within the SCESet object:
+
+
+<<>>=
+# group information in scrat environment
+
+env$group.labels <- c(rep("MNGB", 16), rep("MGB", 14),
+rep("NNI", 15), rep("bystanders", 15) )
+
+env$group.colors <- c(rep("cornflowerblue", 16), rep("chocolate", 14),
+rep("darkolivegreen1", 15), rep("gray50", 15) )
+@
+\pagebreak
+<<>>=
+# group information within SCESet object
+
+str( macro.SCESet.counts@phenoData$group.labels )
+
+str( macro.SCESet.counts@phenoData$group.colors )
+@
+
+\subsection{Pipeline execution}
+scrat will run through all analysis modules without further input. Periodical status messages are given to inform about running and accomplished tasks. Please note that the showcase example will take approx. 15min to finish, depending on the users' hardware:
+  
+<<eval=FALSE>>=
+scrat.run(env)
+@
+  
+  \pagebreak
+\section{scrat analysis modules}
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1\textwidth]{Summary.pdf}
+\end{center}
+\caption{Analysis modules of the scrat package.}
+\label{fig:Module summary}
+\end{figure}
+
+scrat workflow can be divided into five blocks (Figure ~\ref{fig:Module summary}), which will be described in the following sections. After  execution, scrat will perform these analyses and store the results in a defined folder structure. These results comprise a variety of PDF documents with plots and images addressing input data, metagene data obtained by the SOM algorithm, sample similarity structures and pseudotime analysis. The PDF reports are accompanied by CSV spreadsheets for detailed information.\\
+HTML files are generated to provide straightforward access to the analysis results (Figure ~\ref{fig:Results HTML}). They guide the user through the analysis blocks and presents the results at a glance. The \textbf{Summary.html} can be found in the results folder created by scrat.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=1\textwidth]{HTML.pdf}
+\end{center}
+\caption{HTML files allow browsing all results provided by the scrat package.}
+\label{fig:Results HTML}
+\end{figure}
+
+
+\pagebreak
+\subsection{Block I: Preprocessing \& quality check}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=1\textwidth]{Block1.pdf}
+\end{center}
+\caption{Block I outputs. See text for details.}
+\label{fig:Block I}
+\end{figure}
+
+\subsubsection{Read count preprocessing}
+Read counts are preprocessed using standard workflow proposed by Bioconductor \citep{Lun2016}: Cells with library size 3 MAD below median are discarded, as well as cells with number of expressed genes 3 MAD blow median (Figure ~\ref{fig:Block I}a). Read counts are then translated to expression values using scale factor normalization \citep{Lun2016norm}. 
+
+\subsubsection{Input data overview}
+Data distribution, mean expression vs. variance plot (Figure ~\ref{fig:Block I}b), and individual cells' and group-wise agregated expression levels (Figure ~\ref{fig:Block I}c) are provided to judge data quality in terms of identification of potential outlier cells.
+
+\subsubsection{Classification of cell cycle phase}
+Cell cycle prediction is applied to classify cells into G1, G2/M or S phase \citep{Scialdone2015} based on expression patterns of pre-trained classifiers (available for human and mouse data \citep{Lun2016a}, see Figure  ~\ref{fig:Block I}d). Optionally, cell cycle stage effect is subsequently removed from expression values \citep{Ritchie2015}.
+
+
+\pagebreak
+\subsection{Block II: Group annotation \& stability}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[height=0.8\textheight]{Block2.pdf}
+\end{center}
+\caption{Block II outputs. See text for details.}
+\label{fig:Block II}
+\end{figure}
+
+\subsubsection{Unsupervised cell grouping}
+
+Groups can be defined utilizing combinatorics of expression module activation (PATs). Optimum number of groups is determined using sum squared error (SSE) estimation for increasing group numbers (Figure ~\ref{fig:Block II}a). When the optimum is reached, increasing the group number does not entail a significant decrease in SSE. This \'elbow\' in SSE courve is automatically detected by scrat. Cells are then assigned to the groups using Euclidean distaance as similarity metric (Figure ~\ref{fig:Block II}b).
+
+\subsubsection{Group stability}
+
+Sillhouette coefficient is an estimate of reliability of group assignment (Figure ~\ref{fig:Block II}c). It is calculated as correlation of a cell's expression state to the centroid of its group, in relation to correlation to the nearest of the centroids of the other groups. Positive S consequently represents compact groups and unambiguous classification, whereas negative S indicate overlapping groups with intermediate cells.
+
+
+\pagebreak
+\subsection{Block III: Portraying}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[height=0.8\textheight]{Block3.pdf}
+\end{center}
+\caption{Block III outputs. See text for details.}
+\label{fig:Block III}
+\end{figure}
+\clearpage
+
+\subsubsection{Single cell expression portraits}
+
+Each cell's expression landscape is described by the metagene expression values. They are arranged according to the underlying SOM grid and visualized by an appropriate color gradient (red and blue colors indicate over- and underexpressed metagenes, respectively; green and intermediate colors indicate no or low differential expression). The color patterns emerge as smooth textures representing the fingerprint of transcriptional activity of each cell and are mutually comparable (Figure ~\ref{fig:Block III}a). 
+
+\subsubsection{Group reports}
+
+Group-specific portraits are calculated and visualized as the mean expression value of each metagene averaged over all cells of the group. The group report sheets additionally provide general information about differential expression (Figure ~\ref{fig:Block III}b, left part) and the corresponding gene list (center part), and enriched gene sets (right part). The report sheets thus comprehensively characterise the groups defined on single gene, metagene and functional levels.
+
+\subsubsection{Expression module reports}
+
+Complementary approaches were applied to define expression modules using the metagene landscape:
+
+\begin{itemize}
+\item Overexpression spot modules are defined by collecting all overexpressed metagenes in the individual cells and applying an expression threshold. 
+\item Group overexpression spot modules collect metagenes consistently overexpressed in the different groups, respectively. 
+\item k-means modules are defined by applying k-means clustering to the metagene expression data. 
+\item Clusters in the distance map defined by a threshold criterion. The distance map contains mean Euclidean distance of each metagene to its adjacent neighbors, and indicates clusters in data space projected to the SOM. 
+\end{itemize}
+
+The reports comprise several visualizations and information of the modules obtained, similar to the group report sheets:\\
+\\
+Overview about the landscape used to define modules, overview about the modules and supervised heatmap of module expression (Figure ~\ref{fig:Block III}c).\\
+\\
+Module report sheets provide general information and the expression profile across all cells (Figure ~\ref{fig:Block III}d, left part), list of genes contained in the module (center part), and enriched gene sets (right part).
+
+
+
+\subsection{Block IV: Sample similarity analyses}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[height=0.5\textheight]{Block4.pdf}
+\end{center}
+\caption{Block IV outputs. See text for details.}
+\label{fig:Block IV}
+\end{figure}
+
+Different sample similariy metrics and methods are applied to the dimension reduced expression module data and metadata, respectively. Application of downstream analyses on aggregated data instead of single gene data has been previously shown to increase representativeness and reduce noisiness \citep{Wirth2011}\citep{Wirth2012}. 
+
+\subsubsection{Supervised and clustered heatmaps}
+Heatmaps of module and metagene expression data with supervised and hierarchically clustered sample ordering (Figure ~\ref{fig:Block IV}a). 
+
+\subsubsection{Independent Component Analysis}
+Independent component analysis (ICA) distributes cells along axes of most variability similar to principal component analysis. However, restriction to othogonal axes is omitted in ICA. ICA is applied to module and metagene expression data, where the first three components are shown in 3d and pairwise 2d scatterplots (Figure ~\ref{fig:Block IV}b). 
+
+\subsubsection{Correlation Spanning Tree}
+Correlation spanning tree represents module and metagene data as graph with cells as nodes connected to a spanning tree of maximal mutual correlation between connected nodes (Figure ~\ref{fig:Block IV}c). 
+
+\subsubsection{t-SNE}
+t-distributed stochastic neighbor embedding (t-SNE) is a nonlinear dimensionality reduction technique projecting cells into a two-dimensional coordinate system (Figure ~\ref{fig:Block IV}d). It is applied to module  and metagene data. 
+
+
+
+\subsection{Block V: Pseudotime estimation}
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[height=0.8\textheight]{Block5.pdf}
+\end{center}
+\caption{Block V outputs. See text for details.}
+\label{fig:Block V}
+\end{figure}
+
+\subsubsection{Pseudotime estimation using Wanderlust algorithm}
+
+Pseudotime is estimated using wanderlust algorithm \citep{Bendall2014}. This approach generates an ensemble of K-nearest neighbor graphs based on the metagene expression landscape. For each graph, trajectories are calculated and subsequently averaged to obtain the final pseudotime trajectory. 
+
+\subsubsection{Pseudotime trajectory report}
+
+The report sheets present information about pseudotime estimation results:
+
+\begin{itemize}
+  \item Correlation spanning tree and k-nearest neighbor graph utilized in wanderlust algorithm (Figure ~\ref{fig:Block V}a). Color code indicates pseudotime scores of the cells.
+  
+  \item Metagene expression patterns as function of pseudotime: Significance of pseudotime dependency is mapped to the SOM grid (Figure ~\ref{fig:Block V}b, top left part), and top-100 significant metagenes are masked (bottom left part) and their expression profiles across the cells shown as heatmap visualization (right part).
+  
+  \item  Group specific pseudotime information: F-score and p-value for differential scores in the groups (Figure ~\ref{fig:Block V}c, top left part), pseudotime score ordered according to groups and to pseudotime trajectory (bottom left part), and mapping of the groups to k-nearest neighbor graph (right part).
+  
+  \item Significantly pseudotime dependent genes: General information and localization in the SOM (Figure ~\ref{fig:Block V}d, top left part), differential expression ordered according to groups and to pseudotime trajectory (bottom left part), and mapping of expression values to k-nearest neighbor graph (right part).
+\end{itemize}
+
+
+
+\pagebreak
+\section{Parameter settings}
+
+All parameters are optional and will be set to default values if missing.
+However we recommend to set essential parameters according to the users' needs:
+  
+\begin{itemize}
+  \item \textit{dataset.name} (character): name of the dataset. Used to name
+  results folder and environment image (default: "Unnamed").
+  \item \textit{dim.1stLvlSom} (integer): dimension of SOM grid
+  (default: "auto"). Given as a single value defining the size of the square
+  SOM grid. Use "auto" to set SOM size to recommendation (see below).
+  \item \textit{preprocessing} (list): activates/deactivates preprocessing steps:
+    \begin{itemize} 
+      \item \textit{count.processing} (boolean): enables count filtering and normalization when input data are read counts (default: FALSE).
+      \item \textit{cellcycle.correction} (boolean): enables removal of cell cycle effect from expression values (only available for human and mouse organisms; default: FALSE).    
+      \item \textit{feature.centralization} (boolean): enables or disables
+      centralization of the features (default: TRUE).
+      \item \textit{sample.quantile.normalization} (boolean): enables quantile
+      normalization of the cells (default: TRUE).
+    \end{itemize}
+\end{itemize}
+
+\ \\
+Database parameters are required to enable gene annotations and functional analyses (details are given below):
+  
+\begin{itemize}
+  \item \textit{database.dataset} (character): type of ensemble dataset
+  queried using biomaRt interface (default: "auto"). Use "auto" to detect
+  database parameters automatically.
+  \item \textit{database.id.type} (character): type of rowname identifier in
+  biomaRt database (default: ""). Obsolete if \textit{database.dataset="auto"}.
+\end{itemize}
+
+\ \\
+Additional parameters:
+  
+\begin{itemize}
+
+  \item \textit{standard.spot.modules} (character, one of \{"overexpression", "kmeans", "group.overexpression", "dmap"\}): spot modules utilized in downstream analyses such as PAT detection and unsupervised cell grouping (default: "kmeans").
+  
+  \item \textit{pseudotime.estimation} (one of \{NULL, TRUE, list(...)\} ): parameters for wanderlust pseudotime estimation. NULL deactivates pseudotime analysis, TRUE uses standard parameter setting. Alternatively, the parameters can be given as a list of:
+  \begin{itemize}
+    \item \textit{n.waypoints}: number of waypoint cells (integer, >2 )
+    \item \textit{n.iterations}: number of iterations (integer, >1 )
+    \item \textit{k}: number of neighbors of each node in graph (integer, >2 )
+    \item \textit{I}: number of neighbors cells (integer,  1<I<k )
+    \item \textit{initiator.sample}: index or name of initiator cell (integer or character)
+  \end{itemize}
+
+\end{itemize}
+
+
+
+\section{Recommended SOM size and runtime estimation}
+
+The size of the SOM required to resolve main expression modules depends on both the number of features (e.g. genes measured) and the number of cells Here we give a recommendation based on previous analyses of a multitude of different data sets (see Figure ~\ref{fig:Size recommendation}). Addionally, we give a rough estimation for runtime of the SOM training algorithm.
+
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[width=1.0\textwidth]{SizeRecommendation.pdf}
+\end{center}
+\caption{Recommended size of the SOM and estimated runtime of the SOM training on an Intel Core i7 system (16GB RAM).}
+\label{fig:Size recommendation}
+\end{figure}
+
+
+
+\pagebreak
+\section{Biomart database settings}
+
+Two parameters are required to access gene annotations and functional information via biomaRt interface:\\
+\\
+\textbf{\textit{database.dataset}} defines the Ensembl data set to be queried, e.g.\\ "hsapiens\_gene\_ensembl", "mmusculus\_gene\_ensembl" or "rnorvegicus\_gene\_ensembl". A complete list of possible entries can be obtained by
+<<eval=FALSE>>=
+  library(biomaRt)
+mart<-useMart("ensembl")
+listDatasets(mart)
+@
+  The default setting "auto" will cause oposSOM to test frequently used settings of \textit{database.dataset} and \textit{database.id.type}. If this automatic download of annotation data fails, a warning will be given and manual definition of the parameters will be necessary to enable functional analyses.\\
+\\
+\textbf{\textit{database.id.type}} provides information about the identifier type constituted by the rownames of the expression matrix, e.g. "ensembl\_gene\_id", "refseq\_mrna" or "affy\_hg\_u133\_plus\_2". A complete list of possible entries can be obtained by
+<<eval=FALSE>>=
+  library(biomaRt)
+mart<-useMart(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+listFilters(mart)
+@
+  
+  
+  
+  
+  
+\section{Citing scrat}
+
+Please cite \citep{Loffler-Wirth2015} when using the package.
+
+\pagebreak
+\section{Details}
+
+This document was written using:
+<<>>=
+sessionInfo()
+@
+  
+\bibliographystyle{plainnat}
+\bibliography{scrat}  
+
+
+
+
+\end{document}

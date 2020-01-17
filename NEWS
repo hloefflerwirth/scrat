@@ -1,0 +1,14 @@
+2.0.2: 
++ bugfix for missing geneset data object
+2.0.1:
++ scrat now accepts also GeneBCMatrix objects from cellrangerRkit package as input data.
+2.0.0: 
++ Performance boost by implementation of parallel SOM calculation. "som" package dependence removed.
+1.0.3: 
++ ExpressionSet and cyclone problems fixed.
+1.0.2: 
++ Adapted to latest scater and bioconductor versions.
+1.0.1: 
++ Namespace issue fixed.
+1.0.0: 
++ Release version.

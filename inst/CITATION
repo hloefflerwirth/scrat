@@ -1,0 +1,10 @@
+citHeader("To cite 'scrat' in publications use:")
+
+citEntry(entry="article",
+         title="Multilineage communication regulates human liver bud development from pluripotency.",
+         author="Camp, G., Loeffler-Wirth, H. et al.",
+         journal="Nature",
+         year="2017",
+         textVersion=paste("Camp, G., Loeffler-Wirth, H. et al.: ",
+                           "Multilineage communication regulates human liver bud development from pluripotency.",
+                           Nature 2017. ", sep=""))
