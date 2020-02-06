@@ -33,7 +33,7 @@ pipeline.sampleSimilarityAnalysisED <- function()
     n <- if( i == 1 ) paste( "module data (", preferences$standard.spot.modules, ")") else "metagene data"
 
     par(mar=c(1,1,1,1))
-    scrat::heatmap(x=d, col=color.palette.heatmaps(1000), main=paste("Heatmap on",n), scale="n",
+    scrat:::heatmap(x=d, col=color.palette.heatmaps(1000), main=paste("Heatmap on",n), scale="n",
                  labCol=if(ncol(d)<100) colnames(d) else rep("",ncol(d)),
                  labRow=if(i==1) NULL else NA,
                  margins=c(8, 6), zlim=max(abs(range(d)))*c(-1,1), ColSideColors=group.colors, Colv=NA)
@@ -47,7 +47,7 @@ pipeline.sampleSimilarityAnalysisED <- function()
       axis(2, round(max(abs(range(d)))*c(-1,1),1), at=c(0, 1), las=2, tick=FALSE, pos=0, cex.axis=1)
 
     par(mar=c(1,1,1,1))
-    scrat::heatmap(x=d, col=color.palette.heatmaps(1000), main=paste("Clustering heatmap on",n), scale="n",
+    scrat:::heatmap(x=d, col=color.palette.heatmaps(1000), main=paste("Clustering heatmap on",n), scale="n",
                  labCol=if(ncol(d)<100) colnames(d) else rep("",ncol(d)),
                  labRow=if(i==1) NULL else NA,
                  margins=c(8, 5), zlim=max(abs(range(d)))*c(-1,1), ColSideColors=group.colors)
