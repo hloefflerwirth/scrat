@@ -29,7 +29,7 @@ In order to set the analysis parameters and to create the enclosing environment
 it is obligatory to use \textbf{scrat.new}. If any parameter is not
 explicitly defined, default values will be used (see Parameters section):
   
-<<>>=
+<<eval=FALSE>>=
 library(scrat)
 env <- scrat.new(list(dataset.name="Macrophages Showcase"))
 @
@@ -40,7 +40,7 @@ scrat requires input of mapped read counts or preprocessed expression data. Addi
 
 Read count data is to be provided as \textit{scater::SCESet} object, or as two-dimensional numerical matrix (columns and rows represent the cells and genes, respectively). scrat read count preprocessing should be activated in parameter list as described below.
 
-<<>>=
+<<eval=FALSE>>=
 data(macro.SCESet.counts)
 macro.SCESet.counts
 
@@ -52,7 +52,7 @@ env$indata <- macro.SCESet.counts
 If appropriate preprocessing of count data was already applied, scrat also accepts expression data as input. We recommend to use expression values in logarithmic scale. scrat read count preprocessing should be deactivated in this case.\\
 The package accepts two formats: Firstly a scater SCESet object \citep{McCarthy2016}, and secondly a two-dimensional numerical matrix (columns and rows represent the cells and genes, respectively).
 
-<<>>=
+<<eval=FALSE>>=
 data(macro.SCESet.exprs)
 macro.SCESet.exprs
 
@@ -67,7 +67,7 @@ Each cell should be assigned to a distinct group and a corresponding color to im
 Both, group labels and colors are to be provided as charater vector of length number of cells.They can be either assigned as an object in the scrat environment, or within the SCESet object:
 
 
-<<>>=
+<<eval=FALSE>>=
 # group information in scrat environment
 
 env$group.labels <- c(rep("MNGB", 16), rep("MGB", 14),
@@ -77,7 +77,7 @@ env$group.colors <- c(rep("cornflowerblue", 16), rep("chocolate", 14),
 rep("darkolivegreen1", 15), rep("gray50", 15) )
 @
 \pagebreak
-<<>>=
+<<eval=FALSE>>=
 # group information within SCESet object
 
 str( macro.SCESet.counts@phenoData$group.labels )

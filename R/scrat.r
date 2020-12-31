@@ -40,7 +40,8 @@ scrat.new <- function(preferences=NULL)
   env$unique.protein.ids <- NULL
   env$WAD.g.m <- NULL
   env$pseudotime.trajectory <- NULL
-  
+  env$csv.function <- write.csv2
+
   # Generate some additional letters
   env$LETTERS <- c(LETTERS, as.vector(sapply(1:10, function(x) {
     return(paste(LETTERS, x, sep=""))
@@ -52,20 +53,20 @@ scrat.new <- function(preferences=NULL)
 
   # Set default preferences
   env$preferences <- list(dataset.name = "Unnamed",
+													note = "",
                           dim.1stLvlSom = "auto",
                           training.extension = 1,
                           rotate.SOM.portraits = 0,
                           flip.SOM.portraits = FALSE,
-                          activated.modules = list(
-                            reporting = TRUE,
-                            primary.analysis = TRUE,
-                            sample.similarity.analysis = TRUE,
-                            geneset.analysis = TRUE,
-                            geneset.analysis.exact = FALSE,
-                            group.analysis = TRUE,
-                            difference.analysis = TRUE ),
+                          activated.modules = list( "reporting" = TRUE,
+                                                    "primary.analysis" = TRUE, 
+                                                    "sample.similarity.analysis" = TRUE,
+                                                    "geneset.analysis" = TRUE, 
+                                                    "geneset.analysis.exact" = FALSE,
+                                                    "group.analysis" = TRUE,
+                                                    "difference.analysis" = TRUE ),
                           database.biomart = "ENSEMBL_MART_ENSEMBL",
-                          database.host = "jan2019.archive.ensembl.org",
+                          database.host = "jan2020.archive.ensembl.org",
                           database.dataset = "auto",
                           database.id.type = "",
                           standard.spot.modules = "kmeans",
@@ -110,8 +111,8 @@ scrat.run <- function(env)
   util.info("Name:", env$preferences$dataset.name)
 
   #### Preparation & Calculation part ####
-  
-  if (!util.call(pipeline.checkInputParameters, env)) {
+  env <- pipeline.checkInputParameters(env)
+  if (!env$passedInputChecking) {
     return()
   }
   
@@ -121,7 +122,7 @@ scrat.run <- function(env)
     env$preferences$session.info <- sessionInfo()
     env$preferences$started <- format(Sys.time(), "%a %d %b %Y %X")
     
-    util.call(pipeline.countProcessing, env)
+    pipeline.countProcessing(env)
   }
   
   if(env$preferences$activated.modules$reporting)
@@ -132,49 +133,48 @@ scrat.run <- function(env)
 
     if(env$preferences$activated.modules$primary.analysis)
     {
-      util.call(pipeline.qualityCheck, env)
+      pipeline.qualityCheck(env)
     } 
   }
-
   if(env$preferences$activated.modules$primary.analysis || env$preferences$activated.modules$geneset.analysis)
   {
     util.info("Loading gene annotation data.")
-    util.call(pipeline.prepareAnnotation, env)
+    env <- pipeline.prepareAnnotation(env)
   }
-
+  
   if(env$preferences$activated.modules$primary.analysis)
   {
-    util.call(pipeline.cellcycleProcessing, env)
+    env <- pipeline.cellcycleProcessing(env)
     
     util.info("Processing SOM. This may take several time until next notification.")
-    util.call(pipeline.prepareIndata, env)
-    util.call(pipeline.generateSOM, env)
+    env <- pipeline.prepareIndata(env)
+    env <- pipeline.generateSOM(env)
     
     filename <- paste(env$files.name, "pre.RData")
     util.info("Saving environment image:", filename)
     save(env, file=filename)
     
     util.info("Processing Differential Expression Statistics")
-    util.call(pipeline.calcStatistics, env)
+    env <- pipeline.calcStatistics(env)
 
     util.info("Detecting Spots")
-    util.call(pipeline.detectSpotsSamples, env)
-    util.call(pipeline.detectSpotsIntegral, env)
-    util.call(pipeline.patAssignment, env)
-    util.call(pipeline.groupAssignment, env)    
+    env <- pipeline.detectSpotsSamples(env)
+    env <- pipeline.detectSpotsIntegral(env)
+    env <- pipeline.patAssignment(env)
+    env <- pipeline.groupAssignment(env)
   }
 
   if (env$preferences$activated.modules$geneset.analysis)
   {
     util.info("Calculating Geneset Enrichment")
-    util.call(pipeline.genesetStatisticSamples, env)
-    util.call(pipeline.genesetStatisticIntegral, env)
+    env <- pipeline.genesetStatisticSamples(env)
+    env <- pipeline.genesetStatisticIntegral(env)
   }
   
 	 if(!is.null(env$preferences$pseudotime.estimation))
 	{
 		util.info("Processing Pseudotime Analysis")
-		util.call(pipeline.pseudotimeEstimation, env)
+		env <- pipeline.pseudotimeEstimation(env)
 	}
     
   if(env$preferences$activated.modules$primary.analysis || env$preferences$activated.modules$geneset.analysis)
@@ -197,7 +197,7 @@ scrat.run <- function(env)
     if(ncol(env$indata) < 1000)
     {
       util.info("Plotting Sample Portraits")
-      util.call(pipeline.sampleExpressionPortraits, env)
+      pipeline.sampleExpressionPortraits(env)
     } 
     
     if ( env$preferences$activated.modules$sample.similarity.analysis && ncol(env$indata) > 2)
@@ -205,28 +205,28 @@ scrat.run <- function(env)
       util.info("Plotting Sample Similarity Analysis")
       dir.create(file.path(paste(env$files.name, "- Results"), "Sample Similarity Analysis"), showWarnings=FALSE)
       
-      util.call(pipeline.sampleSimilarityAnalysisED, env)
-      util.call(pipeline.sampleSimilarityAnalysisCor, env)
-      util.call(pipeline.sampleSimilarityAnalysisICA, env)
+      pipeline.sampleSimilarityAnalysisED(env)
+      pipeline.sampleSimilarityAnalysisCor(env)
+      pipeline.sampleSimilarityAnalysisICA(env)
     }
     
     util.info("Plotting Summary Sheets (Modules & PATs)")
-    util.call(pipeline.summarySheetsModules, env)
+    pipeline.summarySheetsModules(env)
       
     if(env$preferences$activated.modules$group.analysis && length(unique(env$group.labels)) >= 2)
     {
       util.info("Processing Group-centered Analyses")
-      util.call(pipeline.groupAnalysis, env)
+      pipeline.groupAnalysis(env)
     }
   
 	  if(!is.null(env$preferences$pseudotime.estimation))
 		{
 			util.info("Processing Pseudotime Reports")
-			util.call(pipeline.pseudotimeReport, env)
+			pipeline.pseudotimeReport(env)
 		}
   
     util.info("Generating HTML Report")
-    util.call(pipeline.htmlSummary, env)
+    pipeline.htmlSummary(env)
     
   }    
     

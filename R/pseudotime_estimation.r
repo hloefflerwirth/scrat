@@ -1,21 +1,21 @@
-pipeline.pseudotimeEstimation <- function()
+pipeline.pseudotimeEstimation <- function(env)
 {
-  if( !preferences$pseudotime.estimation$initiator.sample %in% colnames(metadata) )
+  if( !env$preferences$pseudotime.estimation$initiator.sample %in% colnames(env$metadata) )
   {
     util.warn("Initiator sample not found in data. Using fist cell" )
-    preferences$pseudotime.estimation$initiator.sample <<- colnames(metadata)[1]
+    env$preferences$pseudotime.estimation$initiator.sample <- colnames(env$metadata)[1]
   }
   
-  waypoints <- c( preferences$pseudotime.estimation$initiator.sample, setdiff( colnames(metadata), preferences$pseudotime.estimation$initiator.sample )[seq(1,ncol(metadata)-1,length.out=preferences$pseudotime.estimation$n.waypoints-1)] )
+  waypoints <- c( env$preferences$pseudotime.estimation$initiator.sample, setdiff( colnames(env$metadata), env$preferences$pseudotime.estimation$initiator.sample )[seq(1,ncol(env$metadata)-1,length.out=env$preferences$pseudotime.estimation$n.waypoints-1)] )
   
-  cor.matrix <- cor(metadata)
+  cor.matrix <- cor(env$metadata)
   diag(cor.matrix) <- 0
   
-  adj.matrix.kNNG <- matrix( 0, ncol(metadata), ncol(metadata), dimnames=list(colnames(metadata),colnames(metadata)) )
+  adj.matrix.kNNG <- matrix( 0, ncol(env$metadata), ncol(env$metadata), dimnames=list(colnames(env$metadata),colnames(env$metadata)) )
   
   for( i in 1:ncol(cor.matrix) )
   {
-    connect.samples <- which( cor.matrix[,i] >= sort(cor.matrix[,i],decreasing=T)[preferences$pseudotime.estimation$k] )
+    connect.samples <- which( cor.matrix[,i] >= sort(cor.matrix[,i],decreasing=T)[env$preferences$pseudotime.estimation$k] )
     for( x in connect.samples )
     {
       adj.matrix.kNNG[connect.samples,i] = cor.matrix[connect.samples,i]
@@ -23,23 +23,23 @@ pipeline.pseudotimeEstimation <- function()
     }
   }
   
-  if( any( is.infinite( shortest.paths(graph.adjacency(adj.matrix.kNNG,weighted=TRUE),colnames(metadata)[1]) ) ) )
+  if( any( is.infinite( shortest.paths(graph.adjacency(adj.matrix.kNNG,weighted=TRUE),colnames(env$metadata)[1]) ) ) )
   {
     util.warn("Disabling pseudotime estimation due to isolated subgraphs. Increase k.")
-    preferences$pseudotime.estimation <<- NULL
-    return()
+    env$preferences$pseudotime.estimation <- NULL
+    return(env)
   }
   
   T.list <- list()
-  for( ng.i in seq(preferences$pseudotime.estimation$n.iterations) )
+  for( ng.i in seq(env$preferences$pseudotime.estimation$n.iterations) )
   {
-    g.IooK <- graph.empty( ncol(metadata), directed = FALSE)
-    V(g.IooK)$name <- colnames(metadata)
+    g.IooK <- graph.empty( ncol(env$metadata), directed = FALSE)
+    V(g.IooK)$name <- colnames(env$metadata)
     
     for( i in 1:ncol(adj.matrix.kNNG) )
     {
-      connect.samples <- sample( names( which( adj.matrix.kNNG[,i] > 0 ) ), preferences$pseudotime.estimation$I )
-      g.IooK <- add.edges(g.IooK,as.vector(rbind(colnames(metadata)[i],connect.samples)), attr= list(weight=1-adj.matrix.kNNG[connect.samples,i]) ) 
+      connect.samples <- sample( names( which( adj.matrix.kNNG[,i] > 0 ) ), env$preferences$pseudotime.estimation$I )
+      g.IooK <- add.edges(g.IooK,as.vector(rbind(colnames(env$metadata)[i],connect.samples)), attr= list(weight=1-adj.matrix.kNNG[connect.samples,i]) ) 
     }
     
     d.i.j <- shortest.paths(g.IooK,waypoints)
@@ -54,7 +54,7 @@ pipeline.pseudotimeEstimation <- function()
         t.i.j[j,i] <- t.i.j[j,i] + d.i.j[1,j]
       }
     
-    traj.it <- sapply( colnames(d.i.j),function(i)  sum(t.i.j[,i]*w.i.j[,i]/preferences$pseudotime.estimation$n.waypoints) )
+    traj.it <- sapply( colnames(d.i.j),function(i)  sum(t.i.j[,i]*w.i.j[,i]/env$preferences$pseudotime.estimation$n.waypoints) )
     it <- 0
     while(TRUE) 
     {
@@ -67,7 +67,7 @@ pipeline.pseudotimeEstimation <- function()
         }
       
       traj.last <- traj.it
-      traj.it <- sapply( colnames(d.i.j),function(i)  sum(t.i.j[,i]*w.i.j[,i]/preferences$pseudotime.estimation$n.waypoints) )
+      traj.it <- sapply( colnames(d.i.j),function(i)  sum(t.i.j[,i]*w.i.j[,i]/env$preferences$pseudotime.estimation$n.waypoints) )
       
       it <- it+1
       if( cor( traj.last, traj.it ) == 1 || 
@@ -87,12 +87,13 @@ pipeline.pseudotimeEstimation <- function()
   if( length(T.list) == 0 )
   {
     util.warn("Disabling pseudotime estimation. Increase I.")
-    preferences$pseudotime.estimation <<- NULL
-    return()
+    env$preferences$pseudotime.estimation <- NULL
+    return(env)
   }
   
-  pseudotime.trajectory <<- colMeans( do.call(rbind,T.list) )
-  pseudotime.trajectory <<- (pseudotime.trajectory-min(pseudotime.trajectory))/(max(pseudotime.trajectory)-min(pseudotime.trajectory))
+  env$pseudotime.trajectory <- colMeans( do.call(rbind,T.list) )
+  env$pseudotime.trajectory <- (pseudotime.trajectory-min(pseudotime.trajectory))/(max(pseudotime.trajectory)-min(pseudotime.trajectory))
+  return(env)
 }
 
 

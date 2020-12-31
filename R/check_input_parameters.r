@@ -1,68 +1,68 @@
-pipeline.checkInputParameters <- function()
+pipeline.checkInputParameters <- function(env)
 {
   #### check preferences ####
-  if (!is.character(preferences$dataset.name))
+  if (!is.character(env$preferences$dataset.name))
   {
     util.warn("Invalid value of \"dataset.name\". Using \"Unnamed\"")
-    preferences$dataset.name <<- "Unnamed"
+    env$preferences$dataset.name <- "Unnamed"
   }
   
-  if ( preferences$dim.1stLvlSom!="auto" && !is.numeric(preferences$dim.1stLvlSom) || preferences$dim.1stLvlSom < 1)
+  if ( env$preferences$dim.1stLvlSom!="auto" && !is.numeric(env$preferences$dim.1stLvlSom) || env$preferences$dim.1stLvlSom < 1)
   {
     util.warn("Invalid value of \"dim.1stLvlSom\". Using size recommendation")
-    preferences$dim.1stLvlSom <<- "auto"
+    env$preferences$dim.1stLvlSom <- "auto"
   }
   
-  if (!is.numeric(preferences$training.extension) ||
-      preferences$training.extension < 1 ||
-      preferences$training.extension > 10)
+  if (!is.numeric(env$preferences$training.extension) ||
+      env$preferences$training.extension < 1 ||
+      env$preferences$training.extension > 10)
   {
     util.warn("Invalid value of \"training.extension\". Using 1")
-    preferences$training.extension <<- 1
+    env$preferences$training.extension <- 1
   }
   
-  if (!is.numeric(preferences$rotate.SOM.portraits) ||
-      preferences$rotate.SOM.portraits < 0 ||
-      preferences$rotate.SOM.portraits > 4)
+  if (!is.numeric(env$preferences$rotate.SOM.portraits) ||
+      env$preferences$rotate.SOM.portraits < 0 ||
+      env$preferences$rotate.SOM.portraits > 4)
   {
     util.warn("Invalid value of \"rotate.SOM.portraits\". Using 0")
-    preferences$rotate.SOM.portraits <<- 0
+    env$preferences$rotate.SOM.portraits <- 0
   }
   
-  if (!is.logical(preferences$flip.SOM.portraits))
+  if (!is.logical(env$preferences$flip.SOM.portraits))
   {
     util.warn("Invalid value of \"flip.SOM.portraits\". Using FALSE")
-    preferences$flip.SOM.portraits <<- FALSE
+    env$preferences$flip.SOM.portraits <- FALSE
   }
   
-  if (!is.character(preferences$database.biomart))
+  if (!is.character(env$preferences$database.biomart))
   {
     util.warn("Invalid value of \"database.biomart\". Using \"\"")
-    preferences$database.biomart <<- ""
+    env$preferences$database.biomart <- ""
   }
   
-  if (!is.character(preferences$database.host))
+  if (!is.character(env$preferences$database.host))
   {
     util.warn("Invalid value of \"database.host\". Using \"\"")
-    preferences$database.host <<- ""
+    env$preferences$database.host <- ""
   }
   
-  if (!is.character(preferences$database.dataset))
+  if (!is.character(env$preferences$database.dataset))
   {
     util.warn("Invalid value of \"database.dataset\". Using \"\"")
-    preferences$database.dataset <<- ""
+    env$preferences$database.dataset <- ""
   }
   
-  if (!is.character(preferences$database.id.type))
+  if (!is.character(env$preferences$database.id.type))
   {
     util.warn("Invalid value of \"database.id.type\". Using \"\"")
-    preferences$database.id.type <<- ""
+    env$preferences$database.id.type <- ""
   }
   
-  if (!is.list(preferences$activated.modules))
+  if (!is.list(env$preferences$activated.modules))
   {
     util.warn("Invalid value of \"activated.modules\". Using all analysis modules")
-    preferences$activated.modules = list( "reporting" = TRUE,
+    env$preferences$activated.modules = list( "reporting" = TRUE,
                               "primary.analysis" = TRUE, 
                               "sample.similarity.analysis" = TRUE,
                               "geneset.analysis" = TRUE, 
@@ -71,165 +71,167 @@ pipeline.checkInputParameters <- function()
                               "difference.analysis" = TRUE )
   } else
   {
-    if (!is.logical(preferences$activated.modules$reporting))
+    if (!is.logical(env$preferences$activated.modules$reporting))
     {
       util.warn("Invalid value of \"activated.modules$reporting\". Using TRUE")
-      preferences$activated.modules$reporting <<- TRUE
+      env$preferences$activated.modules$reporting <- TRUE
     }
-    if (!is.logical(preferences$activated.modules$primary.analysis))
+    if (!is.logical(env$preferences$activated.modules$primary.analysis))
     {
       util.warn("Invalid value of \"activated.modules$primary.analysis\". Using TRUE")
-      preferences$activated.modules$primary.analysis <<- TRUE
+      env$preferences$activated.modules$primary.analysis <- TRUE
     } else
-    if (!preferences$activated.modules$primary.analysis && is.null(env$som.result))
+    if (!env$preferences$activated.modules$primary.analysis && is.null(env$som.result))
     {
       util.warn("No primary analysis perfomed yet. Setting \"activated.modules$primary.analysis\" to TRUE")
-      preferences$activated.modules$primary.analysis <<- TRUE
+      env$preferences$activated.modules$primary.analysis <- TRUE
     }
-    if (!is.logical(preferences$activated.modules$sample.similarity.analysis))
+    if (!is.logical(env$preferences$activated.modules$sample.similarity.analysis))
     {
       util.warn("Invalid value of \"activated.modules$sample.similarity.analysis\". Using TRUE")
-      preferences$activated.modules$sample.similarity.analysis <<- TRUE
+      env$preferences$activated.modules$sample.similarity.analysis <- TRUE
     }
-    if (!is.logical(preferences$activated.modules$geneset.analysis))
+    if (!is.logical(env$preferences$activated.modules$geneset.analysis))
     {
       util.warn("Invalid value of \"activated.modules$geneset.analysis\". Using TRUE")
-      preferences$activated.modules$geneset.analysis <<- TRUE
+      env$preferences$activated.modules$geneset.analysis <- TRUE
     }
-    if (!is.logical(preferences$activated.modules$geneset.analysis.exact))
+    if (!is.logical(env$preferences$activated.modules$geneset.analysis.exact))
     {
       util.warn("Invalid value of \"activated.modules$geneset.analysis.exact\". Using FALSE")
-      preferences$activated.modules$geneset.analysis.exact <<- FALSE
+      env$preferences$activated.modules$geneset.analysis.exact <- FALSE
     }    
-    if (!is.logical(preferences$activated.modules$group.analysis))
+    if (!is.logical(env$preferences$activated.modules$group.analysis))
     {
       util.warn("Invalid value of \"activated.modules$group.analysis\". Using TRUE")
-      preferences$activated.modules$group.analysis <<- TRUE
+      env$preferences$activated.modules$group.analysis <- TRUE
     }
-    if (!is.logical(preferences$activated.modules$difference.analysis))
+    if (!is.logical(env$preferences$activated.modules$difference.analysis))
     {
       util.warn("Invalid value of \"activated.modules$difference.analysis\". Using TRUE")
-      preferences$activated.modules$difference.analysis <<- TRUE
+      env$preferences$activated.modules$difference.analysis <- TRUE
     }
   }
   
-  if (!is.character(preferences$standard.spot.modules) || length(preferences$standard.spot.modules)!=1 ||
-      !preferences$standard.spot.modules %in% c("overexpression","underexpression","kmeans","correlation","group.overexpression","dmap") )
+  if (!is.character(env$preferences$standard.spot.modules) || length(env$preferences$standard.spot.modules)!=1 ||
+      !env$preferences$standard.spot.modules %in% c("overexpression","underexpression","kmeans","correlation","group.overexpression","dmap") )
   {
     util.warn("Invalid value of \"standard.spot.modules\". Using \"dmap\"")
-    preferences$standard.spot.modules <<- "dmap"
+    env$preferences$standard.spot.modules <- "dmap"
   }
   
-  if (!is.numeric(preferences$spot.coresize.modules) ||
-      preferences$spot.coresize.modules < 1 ||
-      preferences$spot.coresize.modules > 20)
+  if (!is.numeric(env$preferences$spot.coresize.modules) ||
+      env$preferences$spot.coresize.modules < 1 ||
+      env$preferences$spot.coresize.modules > 20)
   {
     util.warn("Invalid value of \"spot.coresize.modules\". Using 3")
-    preferences$spot.coresize.modules <<- 3
+    env$preferences$spot.coresize.modules <- 3
   }
   
-  if (!is.numeric(preferences$spot.threshold.modules) ||
-      preferences$spot.threshold.modules <= 0 ||
-      preferences$spot.threshold.modules >= 1)
+  if (!is.numeric(env$preferences$spot.threshold.modules) ||
+      env$preferences$spot.threshold.modules <= 0 ||
+      env$preferences$spot.threshold.modules >= 1)
   {
     util.warn("Invalid value of \"spot.threshold.modules\". Using 0.95")
-    preferences$spot.threshold.modules <<- 0.95
+    env$preferences$spot.threshold.modules <- 0.95
   }
   
-  if (!is.numeric(preferences$spot.coresize.groupmap) ||
-      preferences$spot.coresize.groupmap < 1 ||
-      preferences$spot.coresize.groupmap > 20)
+  if (!is.numeric(env$preferences$spot.coresize.groupmap) ||
+      env$preferences$spot.coresize.groupmap < 1 ||
+      env$preferences$spot.coresize.groupmap > 20)
   {
     util.warn("Invalid value of \"spot.coresize.groupmap\". Using 5")
-    preferences$spot.coresize.groupmap <<- 5
+    env$preferences$spot.coresize.groupmap <- 5
   }
   
-  if (!is.numeric(preferences$spot.threshold.groupmap) ||
-      preferences$spot.threshold.groupmap <= 0 ||
-      preferences$spot.threshold.groupmap >= 1)
+  if (!is.numeric(env$preferences$spot.threshold.groupmap) ||
+      env$preferences$spot.threshold.groupmap <= 0 ||
+      env$preferences$spot.threshold.groupmap >= 1)
   {
     util.warn("Invalid value of \"spot.threshold.groupmap\". Using 0.75")
-    preferences$spot.threshold.groupmap <<- 0.75
+    env$preferences$spot.threshold.groupmap <- 0.75
   }
   
-  if (!is.list(preferences$preprocessing))
+  if (!is.list(env$preferences$preprocessing))
   {
     util.warn("Invalid value of \"preprocessing\". Using default setting.")
-    preferences$preprocessing = list(
+    env$preferences$preprocessing = list(
       count.processing = FALSE,
       cellcycle.correction = FALSE,
       feature.centralization = TRUE,
       sample.quantile.normalization = TRUE )
   } else
   {
-    if (!is.logical(preferences$preprocessing$count.processing))
+    if (!is.logical(env$preferences$preprocessing$count.processing))
     {
       util.warn("Invalid value of \"preprocessing$count.processing\". Using FALSE")
-      preferences$preprocessing$count.processing <<- FALSE
+      env$preferences$preprocessing$count.processing <- FALSE
     }
-    if (!is.logical(preferences$preprocessing$cellcycle.correction))
+    if (!is.logical(env$preferences$preprocessing$cellcycle.correction))
     {
       util.warn("Invalid value of \"preprocessing$cellcycle.correction\". Using FALSE")
-      preferences$preprocessing$cellcycle.correction <<- FALSE
+      env$preferences$preprocessing$cellcycle.correction <- FALSE
     }
-    if (!is.logical(preferences$preprocessing$feature.centralization))
+    if (!is.logical(env$preferences$preprocessing$feature.centralization))
     {
       util.warn("Invalid value of \"preprocessing$feature.centralization\". Using TRUE")
-      preferences$preprocessing$feature.centralization <<- TRUE
+      env$preferences$preprocessing$feature.centralization <- TRUE
     }   
-    if (!is.logical(preferences$preprocessing$sample.quantile.normalization))
+    if (!is.logical(env$preferences$preprocessing$sample.quantile.normalization))
     {
       util.warn("Invalid value of \"preprocessing$sample.quantile.normalization\". Using TRUE")
-      preferences$preprocessing$sample.quantile.normalization <<- TRUE
+      env$preferences$preprocessing$sample.quantile.normalization <- TRUE
     }    
   }
 
   #### check input data ####
-  if (is.null(indata))
+  if (is.null(env$indata))
   {
     util.fatal("No indata supplied!")
-    return(FALSE)
+    env$passedInputChecking <- FALSE
+    return(env)
   }
   
-  if ( "assayData" %in% slotNames( indata ) )
+  if ( "assayData" %in% slotNames( env$indata ) )
   {
-    if(!is.null(indata@assayData$exprs))
+    if(!is.null(env$indata@assayData$exprs))
     {
-      indata <<- indata@assayData$exprs    
+      env$indata <- env$indata@assayData$exprs    
       util.info("Expression data extracted from assayData slot.")
     }
     else
     {
-      indata <<- indata@assayData$counts
+      env$indata <- env$indata@assayData$counts
       util.info("Count data extracted from assayData slot.")
     }
   }
   
-  if ( "phenoData" %in% slotNames( indata ) )
+  if ( "phenoData" %in% slotNames( env$indata ) )
   { 
-    group.labels <<- indata@phenoData$group.labels
-    group.colors <<- indata@phenoData$group.colors
+    env$group.labels <- env$indata@phenoData$group.labels
+    env$group.colors <- env$indata@phenoData$group.colors
   }
   
   
   
-  if (class(indata) != "matrix" && (is.null(dim(indata)) || dim(indata) < 1))
+  if (!is(env$indata, "matrix") && (is.null(dim(env$indata)) || dim(env$indata) < 1))
   {
     util.fatal("Invalid indata! Provide a two-dimensional numerical matrix.")
-    return(FALSE)
+    env$passedInputChecking <- FALSE
+    return(env)
   }
   
-  if (class(indata) != "matrix" ||
-      mode(indata) != "numeric" )
+  if (!is(env$indata,"matrix") ||
+      mode(env$indata) != "numeric" )
       # storage.mode(indata) != "numeric")
   {
-    rn <- rownames(indata)
-    num.mode <- sapply(seq(ncol(indata)), function(i){ all(grepl("^-?[0-9\\.]+$", indata[,i])) })
+    rn <- rownames(env$indata)
+    num.mode <- sapply(seq(ncol(env$indata)), function(i){ all(grepl("^-?[0-9\\.]+$", env$indata[,i])) })
     
     if( num.mode[1]==FALSE && all(num.mode[-1]==TRUE) ) # check if IDs are contained as first row
     {
-      rn <- indata[,1]
-      indata <<- indata[,-1]
+      rn <- env$indata[,1]
+      env$indata <- env$indata[,-1]
       num.mode <- num.mode[-1]
       util.warn("Gene IDs adopted from first data column.")    
     }
@@ -237,259 +239,264 @@ pipeline.checkInputParameters <- function()
     if( any(num.mode!=TRUE) ) # check if all columns contain numbers or convertable characters
     {
       util.fatal("Invalid indata! Provide a two-dimensional numerical matrix.")
-      return(FALSE)
+      env$passedInputChecking <- FALSE
+      return(env)
       
     } else
     {
-      indata <<- apply(indata, 2, function(x){ as.numeric(as.vector(x)) })
-      rownames(indata) <<- rn
-      storage.mode(indata) <<- "numeric"
+      env$indata <- apply(env$indata, 2, function(x){ as.numeric(as.vector(x)) })
+      rownames(env$indata) <- rn
+      storage.mode(env$indata) <- "numeric"
       util.warn("Indata converted to two-dimensional numerical matrix.")    
     }
   }
   
-  if( length(group.labels)==1 && group.labels=="auto" )
+  if( length(env$group.labels)==1 && env$group.labels=="auto" )
   {
-    group.labels <<- rep("auto",ncol(indata)) 
-    names(group.labels) <<- colnames(indata)
+    env$group.labels <- rep("auto",ncol(env$indata)) 
+    names(env$group.labels) <- colnames(env$indata)
   }
   
-  const.cols <- which(apply(indata, 2, function(col) { diff(range(col)) == 0 }))
+  const.cols <- which(apply(env$indata, 2, function(col) { diff(range(col)) == 0 }))
   
   if (length(const.cols) > 0)
   {
-    indata <<- indata[,-const.cols]
-    group.labels <<- group.labels[-const.cols]
-    group.colors <<- group.colors[-const.cols]
+    env$indata <- env$indata[,-const.cols]
+    env$group.labels <- env$group.labels[-const.cols]
+    env$group.colors <- env$group.colors[-const.cols]
     util.warn("Removed",length(const.cols),"constant columns from data set.")
   }
   
-  const.rows <- which(apply(indata, 1, function(row) { diff(range(row)) == 0 }))
+  const.rows <- which(apply(env$indata, 1, function(row) { diff(range(row)) == 0 }))
   
   if (length(const.rows) > 0)
   {
-    indata <<- indata[-const.rows,]
+    env$indata <- env$indata[-const.rows,]
     util.warn("Removed",length(const.rows),"constant rows from data set.")
   }
   
-  if (length(rownames(indata)) == 0)
+  if (length(rownames(env$indata)) == 0)
   {
-    rownames(indata) <<- as.character(1:nrow(indata))
-    preferences$activated.modules$geneset.analysis <<- FALSE
+    rownames(env$indata) <- as.character(1:nrow(env$indata))
+    env$preferences$activated.modules$geneset.analysis <- FALSE
     util.warn("No rownames found. Set them to 1,2,3,4...")
   }
   
-  if (length(colnames(indata)) == 0)
+  if (length(colnames(env$indata)) == 0)
   {
-    colnames(indata) <<- paste("Sample", c(1:ncol(indata)))
+    colnames(env$indata) <- paste("Sample", c(1:ncol(env$indata)))
     util.warn("No colnames found. Set them to 1,2,3,4...")
   }
   
-  if (any(duplicated(rownames(indata))))
+  if (any(duplicated(rownames(env$indata))))
   {
-    indata <<- do.call(rbind, by(indata, rownames(indata), colMeans))[unique(rownames(indata)),]
+    env$indata <- do.call(rbind, by(env$indata, rownames(env$indata), colMeans))[unique(rownames(env$indata)),]
     util.warn("Duplicate rownames. Averaged multiple features")
   }
-  if( "" %in% rownames(indata) )
+  if( "" %in% rownames(env$indata) )
   {
-    indata <<- indata[which(rownames(indata)!=""),]
+    env$indata <- env$indata[which(rownames(env$indata)!=""),]
     util.warn("Removed genes with \"\" id from data")
   }
   
-  na.rows <- which( apply(indata, 1, function(x) sum( is.na(x) | is.infinite(x) ) ) > 0 )
+  na.rows <- which( apply(env$indata, 1, function(x) sum( is.na(x) | is.infinite(x) ) ) > 0 )
   
   if (length(na.rows) > 0)
   {
-    indata <<- indata[-na.rows,]
+    env$indata <- env$indata[-na.rows,]
     util.warn("Removed NAs or infinite values from data set")
   }
   
-  if (preferences$dim.1stLvlSom == "auto")
+  if (env$preferences$dim.1stLvlSom == "auto")
   {
-    n.sample.interval <- cut( ncol(indata), breaks=c(0,100,500,1000,5000,Inf), labels=c(1:5) )
-    n.feature.interval <- cut( nrow(indata), breaks=c(0,1000,10000,Inf), labels=c(1:3) )
+    n.sample.interval <- cut( ncol(env$indata), breaks=c(0,100,500,1000,5000,Inf), labels=c(1:5) )
+    n.feature.interval <- cut( nrow(env$indata), breaks=c(0,1000,10000,Inf), labels=c(1:3) )
     recommendation <- matrix(c(seq(20,40,5),seq(30,50,5),seq(40,60,5)),nrow=3,byrow=TRUE)
     
-    preferences$dim.1stLvlSom <<- recommendation[n.feature.interval,n.sample.interval]
-    util.info("Recommended SOM size will be used:",preferences$dim.1stLvlSom,"x",preferences$dim.1stLvlSom) 
+    env$preferences$dim.1stLvlSom <- recommendation[n.feature.interval,n.sample.interval]
+    util.info("Recommended SOM size will be used:",env$preferences$dim.1stLvlSom,"x",env$preferences$dim.1stLvlSom) 
   }
   
   # check group.labels and group.colors
-  if ((!is.null(group.labels) && length(group.labels) != ncol(indata)) ||
-      (!is.null(group.colors) && length(group.colors) != ncol(indata)))
+  if ((!is.null(env$group.labels) && length(env$group.labels) != ncol(env$indata)) ||
+      (!is.null(env$group.colors) && length(env$group.colors) != ncol(env$indata)))
   {
-    group.labels <<- NULL
-    group.colors <<- NULL
+    env$group.labels <- NULL
+    env$group.colors <- NULL
     util.warn("Group assignment doesnt fit number of samples")
   }
-  
-  if (!is.null(group.labels) && max(table(group.labels)) == 1)
+  if (!is.null(env$group.labels) && max(table(env$group.labels)) == 1)
   {
-    group.labels <<- NULL
-    group.colors <<- NULL
+    env$group.labels <- NULL
+    env$group.colors <- NULL
     util.warn("Each sample has an own group")
   }
   
-  if (!is.null(group.labels))
+  if (!is.null(env$group.labels))
   {
-    for (sample in unique(colnames(indata)))
+    for (sample in unique(colnames(env$indata)))
     {
-      if (length(unique(group.labels[which(colnames(indata) == sample)])) > 1)
+      if (length(unique(env$group.labels[which(colnames(env$indata) == sample)])) > 1)
       {
         util.warn("Sample is in multiple groups:", sample)
-        group.labels <<- NULL
-        group.colors <<- NULL
+        env$group.labels <- NULL
+        env$group.colors <- NULL
         break
       }
     }
   }
   
-  if (!is.null(group.labels))
+  if (!is.null(env$group.labels))
   {
-    group.labels <<- as.character(group.labels)
-    names(group.labels) <<- colnames(indata)
+    env$group.labels <- as.character(env$group.labels)
+    names(env$group.labels) <- colnames(env$indata)
     
-    if (is.null(group.colors))
+    if (is.null(env$group.colors))
     {
-      group.colors <<- rep("", ncol(indata))
+      env$group.colors <- rep("", ncol(env$indata))
       
-      for (i in seq_along(unique(group.labels)))
+      for (i in seq_along(unique(env$group.labels)))
       {
-        group.colors[which(group.labels == unique(group.labels)[i])] <<-
-          colorRampPalette(c("blue3", "blue", "lightblue", "green2", "gold", "red", "red3"))(length(unique(group.labels)))[i]
+        env$group.colors[which(env$group.labels == unique(env$group.labels)[i])] <-
+          colorRampPalette(c("blue3", "blue", "green3", "gold", "red", "red3"))(length(unique(env$group.labels)))[i]
       }
     }
     
     # catch userdefined group.colors --> convert to #hex
-    if (length(unique(substr(group.colors, 1, 1)) > 1) || unique(substr(group.colors, 1, 1))[1] != "#")
+    if (length(unique(substr(env$group.colors, 1, 1)) > 1) || unique(substr(env$group.colors, 1, 1))[1] != "#")
     {
-      group.colors <<- apply(col2rgb(group.colors), 2, function(x) { rgb(x[1]/255, x[2]/255, x[3]/255) })
+      env$group.colors <- apply(col2rgb(env$group.colors), 2, function(x) { rgb(x[1]/255, x[2]/255, x[3]/255) })
     }
-    names(group.colors) <<- colnames(indata)
+    names(env$group.colors) <- colnames(env$indata)
   } else
   {
-    group.labels <<- rep("auto",ncol(indata)) 
-    names(group.labels) <<- colnames(indata)
+    env$group.labels <- rep("auto",ncol(env$indata))
+    names(env$group.labels) <- colnames(env$indata)
     
-    group.colors <<- rep("#000000", ncol(indata))
-    names(group.colors) <<- colnames(indata)
+    env$group.colors <- rep("#000000", ncol(env$indata))
+    names(env$group.colors) <- colnames(env$indata)
   }
   
-  groupwise.group.colors <<- group.colors[match(unique(group.labels), group.labels)]
-  names(groupwise.group.colors) <<- unique(group.labels)
+  env$groupwise.group.colors <- env$group.colors[match(unique(env$group.labels), env$group.labels)]
+  names(env$groupwise.group.colors) <- unique(env$group.labels)
   
   
   # set color schemes
-  if (!is.null(color.palette.portraits)) # check if given color palette is a valid function
+  if (!is.null(env$color.palette.portraits)) # check if given color palette is a valid function
   {
-    if( length(environment(color.palette.portraits))!=3 || !all( c("colors","ramp") %in% ls(environment(color.palette.portraits)) ) )
+    if( length(environment(env$color.palette.portraits))!=3 || !all( c("colors","ramp") %in% ls(environment(env$color.palette.portraits)) ) )
     {
       util.warn("Invalid value of \"color.palette.portraits\". Using standard scheme")
-      color.palette.portraits <<- colorRampPalette(c("darkblue","blue","lightblue","green2","yellow","red","darkred"))
+      env$color.palette.portraits <- colorRampPalette(c("darkblue","blue","lightblue3","green3","yellow2","red2","darkred"))
     }
   } else
   {
-    color.palette.portraits <<- colorRampPalette(c("darkblue","blue","lightblue","green2","yellow","red","darkred"))
+    env$color.palette.portraits <- colorRampPalette(c("darkblue","blue","lightblue3","green3","yellow2","red2","darkred"))
   }
   
-  if (!is.null(color.palette.heatmaps)) # check if given color palette is a valid function
+  if (!is.null(env$color.palette.heatmaps)) # check if given color palette is a valid function
   {
-    if( length(environment(color.palette.heatmaps))!=3 || !all( c("colors","ramp") %in% ls(environment(color.palette.heatmaps)) ) )
+    if( length(environment(env$color.palette.heatmaps))!=3 || !all( c("colors","ramp") %in% ls(environment(env$color.palette.heatmaps)) ) )
     {
       util.warn("Invalid value of \"color.palette.heatmaps\". Using standard scheme")
-      color.palette.heatmaps <<- colorRampPalette(c("blue4","blue","gray90","orange","red4"))
+      env$color.palette.heatmaps <- colorRampPalette(c("#2C7BB6","#64A4CC","#9CCEE3","#C6E5DB","#ECF6C8","#FEEDAA","#FDC980","#F89D59","#E75B3A","#D7191C"))
     }
   } else
   {
-    color.palette.heatmaps <<- colorRampPalette(c("blue4","blue","gray90","orange","red4"))
+    env$color.palette.heatmaps <- colorRampPalette(c("#2C7BB6","#64A4CC","#9CCEE3","#C6E5DB","#ECF6C8","#FEEDAA","#FDC980","#F89D59","#E75B3A","#D7191C"))
   }
   
-  if(preferences$activated.modules$primary.analysis)
+  if(env$preferences$activated.modules$primary.analysis)
   {
-    files.name <<- preferences$dataset.name
-    while (file.exists(paste(files.name, ".RData", sep=""))) {
-      files.name <<- paste(files.name, "+", sep="")
+    env$files.name <- env$preferences$dataset.name
+    while (file.exists(paste(env$files.name, ".RData", sep=""))) {
+      env$files.name <- paste(env$files.name, "+", sep="")
     }
     
-    output.paths <<-
-      c("CSV"=paste(files.name, "- Results/CSV Sheets"),
-        "Summary Sheets Samples"=paste(files.name, "- Results/Summary Sheets - Samples") )
+    env$output.paths <-
+      c("CSV"=paste(env$files.name, "- Results/CSV Sheets"),
+        "Summary Sheets Samples"=paste(env$files.name, "- Results/Summary Sheets - Samples") )
+    
+    if( !grepl("german",sessionInfo()$locale,ignore.case=TRUE) &&
+        !grepl("bioinf.uni-leipzig.de",Sys.info()["nodename"],ignore.case=TRUE) )
+      env$csv.function <- write.csv
   } 
   
-  if( length(preferences$pseudotime.estimation)==1 && preferences$pseudotime.estimation == TRUE ) # can be TRUE -> default parameters
+  if( length(env$preferences$pseudotime.estimation)==1 && env$preferences$pseudotime.estimation == TRUE ) # can be TRUE -> default parameters
   {
-    if(ncol(indata)>=10)
+    if(ncol(env$indata)>=10)
     {
       util.info("Using standard parameters for pseudotime estimation.")
-      preferences$pseudotime.estimation <<- list( 
-        n.waypoints = max( 5, min( ceiling(ncol(indata)*0.05), 50 ) ),
+      env$preferences$pseudotime.estimation <- list( 
+        n.waypoints = max( 5, min( ceiling(ncol(env$indata)*0.05), 50 ) ),
         n.iterations = 20,
-        k = max( 5, min( ceiling(ncol(indata)*0.05), 50 ) ),
-        I = max( 2, min( ceiling(ncol(indata)*0.01), 10 ) ),
-        initiator.sample = colnames(indata)[1])
+        k = max( 5, min( ceiling(ncol(env$indata)*0.05), 50 ) ),
+        I = max( 2, min( ceiling(ncol(env$indata)*0.01), 10 ) ),
+        initiator.sample = colnames(env$indata)[1])
     } else
     {
       util.warn("Disabling pseudotime estimation. Too few samples.")
-      preferences$pseudotime.estimation <<- NULL
+      env$preferences$pseudotime.estimation <- NULL
     }
   } else
-  if( is.list(preferences$pseudotime.estimation) ) # use user defined parameters
+  if( is.list(env$preferences$pseudotime.estimation) ) # use user defined parameters
   {
-    if(ncol(indata)>=10)
+    if(ncol(env$indata)>=10)
     {
-      default <- list( n.waypoints = max( 5, min( ceiling(ncol(indata)*0.05), 50 ) ),
+      default <- list( n.waypoints = max( 5, min( ceiling(ncol(env$indata)*0.05), 50 ) ),
                        n.iterations = 20,
-                       k = max( 5, min( ceiling(ncol(indata)*0.05), 50 ) ),
-                       I = max( 2, min( ceiling(ncol(indata)*0.01), 10 ) ),
-                       initiator.sample = colnames(indata)[1])
+                       k = max( 5, min( ceiling(ncol(env$indata)*0.05), 50 ) ),
+                       I = max( 2, min( ceiling(ncol(env$indata)*0.01), 10 ) ),
+                       initiator.sample = colnames(env$indata)[1])
       
-      preferences$pseudotime.estimation <<- modifyList( default, preferences$pseudotime.estimation )
+      env$preferences$pseudotime.estimation <- modifyList( default, env$preferences$pseudotime.estimation )
       
-      if (!is.numeric(preferences$pseudotime.estimation$n.waypoints) ||
-          preferences$pseudotime.estimation$n.waypoints < 3 ||
-          preferences$pseudotime.estimation$n.waypoints > ncol(indata))
+      if (!is.numeric(env$preferences$pseudotime.estimation$n.waypoints) ||
+          env$preferences$pseudotime.estimation$n.waypoints < 3 ||
+          env$preferences$pseudotime.estimation$n.waypoints > ncol(env$indata))
       {
         util.warn("Invalid value of \"pseudotime.estimation$n.waypoints\". Using standard value")
-        preferences$pseudotime.estimation$n.waypoints <<- max( 5, min( ceiling(ncol(indata)*0.05), 50 ) )
+        env$preferences$pseudotime.estimation$n.waypoints <- max( 5, min( ceiling(ncol(env$indata)*0.05), 50 ) )
       }
-      if (!is.numeric(preferences$pseudotime.estimation$n.iterations) ||
-          preferences$pseudotime.estimation$n.iterations < 2 )
+      if (!is.numeric(env$preferences$pseudotime.estimation$n.iterations) ||
+          env$preferences$pseudotime.estimation$n.iterations < 2 )
       {
         util.warn("Invalid value of \"pseudotime.estimation$n.iterations\". Using 20")
-        preferences$pseudotime.estimation$n.iterations <<- 20
+        env$preferences$pseudotime.estimation$n.iterations <- 20
       }
-      if (!is.numeric(preferences$pseudotime.estimation$k) ||
-          preferences$pseudotime.estimation$k < 3 ||
-          preferences$pseudotime.estimation$k > ncol(indata))
+      if (!is.numeric(env$preferences$pseudotime.estimation$k) ||
+          env$preferences$pseudotime.estimation$k < 3 ||
+          env$preferences$pseudotime.estimation$k > ncol(env$indata))
       {
         util.warn("Invalid value of \"pseudotime.estimation$k\". Using standard value")
-        preferences$pseudotime.estimation$k <<- max( 5, min( ceiling(ncol(indata)*0.05), 50 ) )
+        env$preferences$pseudotime.estimation$k <- max( 5, min( ceiling(ncol(env$indata)*0.05), 50 ) )
       }
-      if (!is.numeric(preferences$pseudotime.estimation$I) ||
-          preferences$pseudotime.estimation$I < 2 ||
-          preferences$pseudotime.estimation$I >= preferences$pseudotime.estimation$k)
+      if (!is.numeric(env$preferences$pseudotime.estimation$I) ||
+          env$preferences$pseudotime.estimation$I < 2 ||
+          env$preferences$pseudotime.estimation$I >= env$preferences$pseudotime.estimation$k)
       {
         util.warn("Invalid value of \"pseudotime.estimation$I\". Using standard value")
-        preferences$pseudotime.estimation$I <<- max( 2, min( ceiling(ncol(indata)*0.01), 10 ) )
+        env$preferences$pseudotime.estimation$I <- max( 2, min( ceiling(ncol(env$indata)*0.01), 10 ) )
       }
-      if( is.numeric(preferences$pseudotime.estimation$initiator.sample) && length(preferences$pseudotime.estimation$initiator.sample) == 1 && preferences$pseudotime.estimation$initiator.sample %in% c(1:ncol(indata)) )
+      if( is.numeric(env$preferences$pseudotime.estimation$initiator.sample) && length(env$preferences$pseudotime.estimation$initiator.sample) == 1 && env$preferences$pseudotime.estimation$initiator.sample %in% c(1:ncol(env$indata)) )
       {
-        preferences$pseudotime.estimation$initiator.sample <<- colnames(indata)[preferences$pseudotime.estimation$initiator.sample]
+        env$preferences$pseudotime.estimation$initiator.sample <- colnames(env$indata)[env$preferences$pseudotime.estimation$initiator.sample]
       } 
-      if( !is.character(preferences$pseudotime.estimation$initiator.sample) || length(preferences$pseudotime.estimation$initiator.sample) != 1 || !preferences$pseudotime.estimation$initiator.sample %in% colnames(indata) )
+      if( !is.character(env$preferences$pseudotime.estimation$initiator.sample) || length(env$preferences$pseudotime.estimation$initiator.sample) != 1 || !env$preferences$pseudotime.estimation$initiator.sample %in% colnames(env$indata) )
       {
         util.warn("Invalid value of \"pseudotime.estimation$initiator.sample\". Using fist sample." )
-        preferences$pseudotime.estimation$initiator.sample <<- colnames(indata)[1]
+        env$preferences$pseudotime.estimation$initiator.sample <- colnames(env$indata)[1]
       }        
     } else
     {
       util.warn("Disabling pseudotime estimation. Too few samples.")
-      preferences$pseudotime.estimation <<- NULL
+      env$preferences$pseudotime.estimation <- NULL
     }    
   } else
   {
-    preferences$pseudotime.estimation <<- NULL
+    env$preferences$pseudotime.estimation <- NULL
   } 
-
-  return(TRUE)
+  
+  env$passedInputChecking <- TRUE
+  return(env)
 }

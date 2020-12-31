@@ -1,24 +1,24 @@
-pipeline.genesetStatisticSamples <- function()
+pipeline.genesetStatisticSamples <- function(env)
 {
 
   ### perform GS analysis ###
-  t.ensID.m <<- t.g.m[which(rownames(indata) %in% names(gene.info$ids)),]
-  t.ensID.m <<- do.call(rbind, by(t.ensID.m, gene.info$ids, colMeans))
+  env$t.ensID.m <- env$t.g.m[which(rownames(env$indata) %in% names(env$gene.info$ids)),]
+  env$t.ensID.m <- do.call(rbind, by(env$t.ensID.m, env$gene.info$ids, colMeans))
 
-  if (preferences$activated.modules$geneset.analysis.exact)
+  if (env$preferences$activated.modules$geneset.analysis.exact)
   {
     gs.null.list <- list()
 
-    for (i in seq_along(gs.def.list))
+    for (i in seq_along(env$gs.def.list))
     {
       gs.null.list[[i]] <-
-        list(Genes=sample(unique.protein.ids, length(gs.def.list[[i]]$Genes)))
+        list(Genes=sample(env$unique.protein.ids, length(env$gs.def.list[[i]]$Genes)))
     }
 
-    null.scores <- sapply( 1:ncol(indata), function(m)
+    null.scores <- sapply( 1:ncol(env$indata), function(m)
     {
-      all.gene.statistic <- t.ensID.m[,m]
-      spot.gene.ids <- unique.protein.ids
+      all.gene.statistic <- env$t.ensID.m[,m]
+      spot.gene.ids <- env$unique.protein.ids
 
       scores <- GeneSet.GSZ(spot.gene.ids, all.gene.statistic, gs.null.list)
 
@@ -28,17 +28,17 @@ pipeline.genesetStatisticSamples <- function()
     null.culdensity <- ecdf(abs(unlist(null.scores)))
   }
 
-  spot.list.samples <<- lapply(seq_along(spot.list.samples) , function(m)
+  env$spot.list.samples <- lapply(seq_along(env$spot.list.samples) , function(m)
   {
-    x <- spot.list.samples[[m]]
-    all.gene.statistic <- t.ensID.m[,m]
-    spot.gene.ids <- unique.protein.ids
+    x <- env$spot.list.samples[[m]]
+    all.gene.statistic <- env$t.ensID.m[,m]
+    spot.gene.ids <- env$unique.protein.ids
 
     x$GSZ.score <-
-      GeneSet.GSZ(spot.gene.ids, all.gene.statistic, gs.def.list, sort=FALSE)
-#      GeneSet.maxmean(all.gene.statistic, gs.def.list)
+      GeneSet.GSZ(spot.gene.ids, all.gene.statistic, env$gs.def.list, sort=FALSE)
+#      GeneSet.maxmean(all.gene.statistic, env$gs.def.list)
 
-    if (preferences$activated.modules$geneset.analysis.exact)
+    if (env$preferences$activated.modules$geneset.analysis.exact)
     {
        x$GSZ.p.value <- 1 - null.culdensity(abs(x$GSZ.score))
        names(x$GSZ.p.value) <- names(x$GSZ.score)
@@ -46,12 +46,12 @@ pipeline.genesetStatisticSamples <- function()
 
     return(x)
   })
-  names(spot.list.samples) <<- colnames(indata)
+  names(env$spot.list.samples) <- colnames(env$indata)
   
   ### GSZ table output ###
-  samples.GSZ.scores <<- do.call(cbind, lapply(spot.list.samples, function(x)
+  env$samples.GSZ.scores <- do.call(cbind, lapply(env$spot.list.samples, function(x)
   {
-    return(x$GSZ.score[names(gs.def.list)])
+    return(x$GSZ.score[names(env$gs.def.list)])
   }))
-
+  return(env)
 }

@@ -33,7 +33,6 @@ GeneSet.Fisher <- function(list.ids, all.ids, gs.def.list, sort=FALSE)
   }
 
   p.values <- sapply(gs.def.list, fn, list.ids, all.ids)
-
   names(p.values) <- names(gs.def.list)
   p.values[which(p.values > 1)] <- 1
   p.values[which(p.values < 1e-99)] <- 1e-99

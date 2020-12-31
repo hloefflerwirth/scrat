@@ -1,10 +1,10 @@
-pipeline.htmlSummary <- function()
+pipeline.htmlSummary <- function(env)
 {
-  dirname <- paste(files.name, "- Results/html")
-  dir.create(dirname, showWarnings=FALSE, recursive=TRUE)
+  dirname <- paste(env$files.name, "- Results/html")
+  dir.create(dirname, showWarnings=FALSE, recursive=TRUE) 
   
-  
-  filename <- file.path(paste(files.name, "- Results"), "html", "style.css")
+  filename <- file.path(paste(env$files.name, "- Results"), "html", "Summary.html")
+  util.info("Writing:", filename)
   outfile <- file(filename, "w")
   
   cat("
@@ -87,8 +87,8 @@ pipeline.htmlSummary <- function()
          
   #### Overview ####
   
-  filename <- file.path(paste(files.name, "- Results"), "Summary.html")
-  outfile <- file(filename, "w")
+  filename <- file.path(paste(env$files.name , "- Results"), "Summary.html")
+  `outfile <- file(filename, "w")
 
   
   # <ul>
@@ -116,23 +116,23 @@ pipeline.htmlSummary <- function()
         <h1>Overview</h1>
         <dl>
         <dt>Dataset name</dt>
-        <dd>", preferences$dataset.name, "</dd>
+        <dd>", env$preferences$dataset.name, "</dd>
         <dt>Number of samples</dt>
-        <dd>", ncol(indata), "</dd>
+        <dd>", ncol(env$indata), "</dd>
         <dt>Number of groups</dt>
-        <dd>", length(unique(group.labels)), "</dd>
+        <dd>", length(unique(env$group.labels)), "</dd>
         <dt>Number of genes</dt>
-        <dd>", nrow(indata), "</dd>
+        <dd>", nrow(env$indata), "</dd>
         <dt>ID type of genes</dt>
-        <dd>", ifelse( preferences$database.id.type!="", preferences$database.id.type, "not defined" ), "</dd>
+        <dd>", ifelse( env$preferences$database.id.type!="", env$preferences$database.id.type, "not defined" ), "</dd>
         <dt>Dimension of the SOM</dt>
-        <dd>", preferences$dim.1stLvlSom, " x ", preferences$dim.1stLvlSom, "</dd>
+        <dd>", env$preferences$dim.1stLvlSom, " x ", env$preferences$dim.1stLvlSom, "</dd>
         <dt>Date</dt>
         <dd>", format(Sys.time(), "%a %b %d %X %Y %Z"), "</dd>
         <dt>Analyst</dt>
-        <dd>", preferences$system.info["user"], "</dd>
+        <dd>", env$preferences$system.info["user"], "</dd>
         <dt>scrat version</dt>
-        <dd>", preferences$session.info$otherPkgs$scrat$Version, "</dd>
+        <dd>", env$preferences$session.info$otherPkgs$scrat$Version, "</dd>
         </dl>
       </div></body></html>", sep="", file=outfile)
   
@@ -141,7 +141,7 @@ pipeline.htmlSummary <- function()
  
   #### bock 1 ####
   
-  filename <- file.path(paste(files.name, "- Results"), "html", "safsari_block1.html")
+  filename <- file.path(paste(env$files.name , "- Results"), "html", "safsari_block1.html")
   outfile <- file(filename, "w")  
   
   cat("<!DOCTYPE html>
@@ -167,7 +167,7 @@ pipeline.htmlSummary <- function()
       <h1>Block I: Preprocessing & quality check</h1>
       <h2>Read count preprocessing</h2>", sep="", file=outfile)
 
-  if(preferences$preprocessing$count.processing)
+  if(env$preferences$preprocessing$count.processing)
   {
     cat("Read counts are preprocessed using standard workflow:<br>
       Cells with library size 3 MAD below median are discarded, as well as cells with number of expressed genes 3 MAD blow median (see p.1 in PDF below).
@@ -185,7 +185,7 @@ pipeline.htmlSummary <- function()
  
       <h2>Cell cycle phase classification</h2>", sep="", file=outfile)
 
-  if(file.exists(file.path(paste(files.name, "- Results"), "Data Overview", "Cell cycle phase.pdf")))
+  if(file.exists(file.path(paste(env$files.name , "- Results"), "Data Overview", "Cell cycle phase.pdf")))
   {    
     cat("Cell cycle prediction was applied to classify cells into G1 (G1 score above 0.5), G2/M (G2/M score above 0.5) or S phase (otherwise) based on 
         expression patterns of pre-trained classifiers. 
@@ -202,7 +202,7 @@ pipeline.htmlSummary <- function()
   
   #### bock 2 ####
   
-  filename <- file.path(paste(files.name, "- Results"), "html", "safsari_block2.html")
+  filename <- file.path(paste(env$files.name , "- Results"), "html", "safsari_block2.html")
   outfile <- file(filename, "w")  
   
   cat("<!DOCTYPE html>
@@ -228,7 +228,7 @@ pipeline.htmlSummary <- function()
       <h1>Block II: Group annotation & stability</h1>
       <h2>Data driven group annotation</h2>", sep="", file=outfile)
 
-  if(file.exists(file.path(paste(files.name, "- Results"), "Summary Sheets - Groups", "PAT-groups assignment.pdf")))
+  if(file.exists(file.path(paste(env$files.name , "- Results"), "Summary Sheets - Groups", "PAT-groups assignment.pdf")))
   {    
     cat("Groups are defined utilizing combinatorics of expression module activation (PATs). Optimum number of groups is determined using sum squared error (SSE) estimation for increasing group numbers (p.1 in PDF below): 
         when optimum is reached, increasing the group number does not entail a significant decrease in SSE. This \'elbow\' in SSE courve is automatically detected using parallel shift of the red line.<br>
@@ -254,7 +254,7 @@ pipeline.htmlSummary <- function()
   
   #### bock 3 ####
   
-  filename <- file.path(paste(files.name, "- Results"), "html", "safsari_block3.html")
+  filename <- file.path(paste(env$files.name , "- Results"), "html", "safsari_block3.html")
   outfile <- file(filename, "w")  
   
   cat("<!DOCTYPE html>
@@ -280,7 +280,7 @@ pipeline.htmlSummary <- function()
       <h1>Block III: Portraying</h1>
       <h2>Single cell expression portraits</h2>", sep="", file=outfile)
 
-      if(file.exists(file.path(paste(files.name, "- Results"),"Expression portraits.pdf")))
+      if(file.exists(file.path(paste(env$files.name , "- Results"),"Expression portraits.pdf")))
       {
         cat("Each cell's expression landscape is described by the metagene expression values. They are arranged according to the underlying SOM grid and visualized by an appropriate color gradient (red and blue colors indicate over- and underexpressed metagenes, respectively; green and intermediate colors indicate no or low differential expression).
             The color patterns emerge as smooth textures representing the fingerprint of transcriptional activity of each cell and are mutually comparable. 
@@ -312,7 +312,7 @@ pipeline.htmlSummary <- function()
       Overexpression spot modules are defined by collecting all overexpressed metagenes in the individual cells and applying an expression threshold.
       <object data=\"../Summary Sheets - Modules/Overexpression Spots/Report.pdf\" type=\"application/pdf\" style=\"width:100%;height:600px;border:1px solid black\"></object>", sep="", file=outfile)
   
-  if(file.exists(file.path(paste(files.name, "- Results"),"Summary Sheets - Modules","Group Overexpression Spots","Report.pdf")))
+  if(file.exists(file.path(paste(env$files.name , "- Results"),"Summary Sheets - Modules","Group Overexpression Spots","Report.pdf")))
   {
     cat("<br><br>
         Group overexpression spot modules collect metagenes consistently overexpressed in the different groups, respectively.
@@ -336,7 +336,7 @@ pipeline.htmlSummary <- function()
   
   #### bock 4 ####
   
-  filename <- file.path(paste(files.name, "- Results"), "html", "safsari_block4.html")
+  filename <- file.path(paste(env$files.name, "- Results"), "html", "safsari_block4.html")
   outfile <- file(filename, "w")  
   
   cat("<!DOCTYPE html>
@@ -390,7 +390,7 @@ pipeline.htmlSummary <- function()
   
   #### bock 5 ####
   
-  filename <- file.path(paste(files.name, "- Results"), "html", "safsari_block5.html")
+  filename <- file.path(paste(env$files.name, "- Results"), "html", "safsari_block5.html")
   outfile <- file(filename, "w")  
   
   cat("<!DOCTYPE html>
@@ -417,7 +417,7 @@ pipeline.htmlSummary <- function()
       <div id=\"wrapper\">
       <h1>Block V: Pseudotime estimation</h1>", sep="", file=outfile)
   
-  if(file.exists(file.path(paste(files.name, "- Results"), "Pseudotime Analysis", "Trajectory report.pdf")))
+  if(file.exists(file.path(paste(env$files.name, "- Results"), "Pseudotime Analysis", "Trajectory report.pdf")))
   {    
     cat("Pseudotime is estimated using wanderlust algorithm. In brief, this approach generates an ensemble of K-nearest neighbor graphs based on the metagene expression landscape. For each graph, trajectories are calculated and subsequently averaged to obtain the final pseudotime trajectory.
       
@@ -446,13 +446,11 @@ pipeline.htmlSummary <- function()
   {
     cat("skipped", sep="", file=outfile)
   }
-  
 
+  cat("
+    </div>
+  </body>
+</html>", sep="", file=outfile)
 
-  cat("</div></body></html>", sep="", file=outfile)
-  
-  close(outfile) 
-  
-  
-  
+  close(outfile)
 }
