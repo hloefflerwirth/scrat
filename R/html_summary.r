@@ -88,7 +88,7 @@ pipeline.htmlSummary <- function(env)
   #### Overview ####
   
   filename <- file.path(paste(env$files.name , "- Results"), "Summary.html")
-  `outfile <- file(filename, "w")
+  outfile <- file(filename, "w")
 
   
   # <ul>
