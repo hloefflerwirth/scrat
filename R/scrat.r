@@ -41,6 +41,8 @@ scrat.new <- function(preferences=NULL)
   env$WAD.g.m <- NULL
   env$pseudotime.trajectory <- NULL
   env$csv.function <- write.csv2
+  env$seuratObject <- NULL
+  
 
   # Generate some additional letters
   env$LETTERS <- c(LETTERS, as.vector(sapply(1:10, function(x) {
@@ -64,7 +66,8 @@ scrat.new <- function(preferences=NULL)
                                                     "geneset.analysis" = TRUE, 
                                                     "geneset.analysis.exact" = FALSE,
                                                     "group.analysis" = TRUE,
-                                                    "difference.analysis" = TRUE ),
+                                                    "difference.analysis" = TRUE,
+                                                    "seurat" = TRUE ),
                           database.biomart = "ENSEMBL_MART_ENSEMBL",
                           database.host = "jan2020.archive.ensembl.org",
                           database.dataset = "auto",
@@ -76,11 +79,15 @@ scrat.new <- function(preferences=NULL)
                           spot.threshold.groupmap = 0.75,
                           adjust.autogroup.number = 0,
                           pseudotime.estimation = NULL,
+													indata.counts = FALSE,
+													dim.reduction = "tsne",
                           preprocessing = list(
                             count.processing = FALSE,
                             cellcycle.correction = FALSE,
                             feature.centralization = TRUE,
-                            sample.quantile.normalization = TRUE ) )
+                            sample.quantile.normalization = TRUE,
+                            seurat.normalize = TRUE,
+                            create.meta.cell = TRUE) )
 
   # Merge user supplied information
   if (!is.null(preferences))
@@ -107,6 +114,10 @@ scrat.new <- function(preferences=NULL)
 # Executes the scrat pipeline.
 scrat.run <- function(env)
 {
+  env$preferences$system.info <- Sys.info()
+  env$preferences$session.info <- sessionInfo()
+  env$preferences$started <- format(Sys.time(), "%a %d %b %Y %X")
+  
   util.info("Started:", env$preferences$started)
   util.info("Name:", env$preferences$dataset.name)
 
@@ -114,15 +125,6 @@ scrat.run <- function(env)
   env <- pipeline.checkInputParameters(env)
   if (!env$passedInputChecking) {
     return()
-  }
-  
-  if(env$preferences$activated.modules$primary.analysis)
-  {
-    env$preferences$system.info <- Sys.info()
-    env$preferences$session.info <- sessionInfo()
-    env$preferences$started <- format(Sys.time(), "%a %d %b %Y %X")
-    
-    pipeline.countProcessing(env)
   }
   
   if(env$preferences$activated.modules$reporting)
@@ -136,6 +138,13 @@ scrat.run <- function(env)
       pipeline.qualityCheck(env)
     } 
   }
+  
+  if(env$preferences$activated.modules$seurat){
+    util.info("Process to Seurat Object")
+    env <- pipeline.seuratPreprocessing(env)
+    pipeline.summarySheetSeurat(env)
+  }
+  
   if(env$preferences$activated.modules$primary.analysis || env$preferences$activated.modules$geneset.analysis)
   {
     util.info("Loading gene annotation data.")
@@ -144,7 +153,10 @@ scrat.run <- function(env)
   
   if(env$preferences$activated.modules$primary.analysis)
   {
-    env <- pipeline.cellcycleProcessing(env)
+    if (env$preferences$preprocessing$seurat.normalize)
+    {
+      env <- pipeline.cellcycleProcessing(env)
+    }
     
     util.info("Processing SOM. This may take several time until next notification.")
     env <- pipeline.prepareIndata(env)

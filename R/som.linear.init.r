@@ -4,7 +4,7 @@ som.linear.init.subdata <- function (indata, somSize)
   loadings.x <- pca$sdev[1] * pca$rotation[, 1]
   loadings.y <- pca$sdev[2] * pca$rotation[, 2]
   
-  colmeans <- colMeans(indata)
+  colmeans <- Matrix::colMeans(indata)
   tick.factor <- seq(-2, 2, length = somSize)
 
 

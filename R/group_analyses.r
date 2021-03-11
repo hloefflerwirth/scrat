@@ -18,16 +18,16 @@ pipeline.groupAnalysis <- function(env)
   
   # calculate differential expression statistics
 
-  local.env$WAD.g.m <- matrix(NA, nrow(env$indata), length(unique(env$group.labels)),
-                     dimnames=list(rownames(env$indata), unique(env$group.labels)))
-  local.env$t.g.m <- matrix(NA, nrow(env$indata), length(unique(env$group.labels)),
-                   dimnames=list(rownames(env$indata), unique(env$group.labels)))
-  local.env$p.g.m <- matrix(NA, nrow(env$indata), length(unique(env$group.labels)),
-                   dimnames=list(rownames(env$indata), unique(env$group.labels)))
-  local.env$fdr.g.m <- matrix(NA, nrow(env$indata), length(unique(env$group.labels)),
-                     dimnames=list(rownames(env$indata), unique(env$group.labels)))
-  local.env$Fdr.g.m <- matrix(NA, nrow(env$indata), length(unique(env$group.labels)),
-                     dimnames=list(rownames(env$indata), unique(env$group.labels)))
+  local.env$WAD.g.m <- matrix(NA, nrow(env$seuratObject), length(unique(env$group.labels)),
+                     dimnames=list(rownames(env$seuratObject), unique(env$group.labels)))
+  local.env$t.g.m <- matrix(NA, nrow(env$seuratObject), length(unique(env$group.labels)),
+                   dimnames=list(rownames(env$seuratObject), unique(env$group.labels)))
+  local.env$p.g.m <- matrix(NA, nrow(env$seuratObject), length(unique(env$group.labels)),
+                   dimnames=list(rownames(env$seuratObject), unique(env$group.labels)))
+  local.env$fdr.g.m <- matrix(NA, nrow(env$seuratObject), length(unique(env$group.labels)),
+                     dimnames=list(rownames(env$seuratObject), unique(env$group.labels)))
+  local.env$Fdr.g.m <- matrix(NA, nrow(env$seuratObject), length(unique(env$group.labels)),
+                     dimnames=list(rownames(env$seuratObject), unique(env$group.labels)))
   local.env$n.0.m <- rep(NA, length(unique(env$group.labels)))
     names(env$n.0.m) <- unique(env$group.labels)
   local.env$perc.DE.m <- rep(NA, length(unique(env$group.labels)))
@@ -39,7 +39,7 @@ pipeline.groupAnalysis <- function(env)
     samples.indata <- which(env$group.labels==unique(env$group.labels)[gr])
     
     n <- length(samples.indata)
-    local.env$t.g.m[,gr] <- sqrt(n) * apply(env$indata[,samples.indata,drop=FALSE],1,function(x)
+    local.env$t.g.m[,gr] <- sqrt(n) * apply(env$seuratObject@assays$RNA@data[,samples.indata,drop=FALSE],1,function(x)
     {
       sd.estimate = if( n>1 ) sd(x) else 1
       if( sd.estimate == 0 ) sd.estimate = 1
@@ -72,7 +72,7 @@ pipeline.groupAnalysis <- function(env)
       local.env$perc.DE.m[gr] <- 0.5
     }
     
-    delta.e.g.m <- apply(env$indata[,samples.indata,drop=FALSE],1,mean)
+    delta.e.g.m <- apply(env$seuratObject@assays$RNA@data[,samples.indata,drop=FALSE],1,mean)
 
     local.env$w.g.m <- (delta.e.g.m - min(delta.e.g.m)) / (max(delta.e.g.m) - min(delta.e.g.m))
     local.env$WAD.g.m[,gr] <- local.env$w.g.m * delta.e.g.m
@@ -84,7 +84,7 @@ pipeline.groupAnalysis <- function(env)
     
   local.env$metadata <- do.call(cbind, by(t(env$metadata), env$group.labels, colMeans)[unique(env$group.labels)])
 
-  local.env$indata <- do.call(cbind, by(t(env$indata+env$indata.gene.mean),
+  local.env$indata <- do.call(cbind, by(Matrix::t(env$seuratObject@assays$RNA@data+env$indata.gene.mean),
                               env$group.labels,
                              colMeans)[unique(env$group.labels)])
 

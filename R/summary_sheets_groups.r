@@ -84,7 +84,7 @@ pipeline.summarySheetsGroups <- function(env)
     
     return(  mean.group.correlations )
   } )
-  colnames(group.correlations) <- colnames(env$indata)
+  colnames(group.correlations) <- colnames(env$seuratObject)
   group.correlations[which(is.nan(group.correlations))] <- 0
     
   
@@ -92,12 +92,12 @@ pipeline.summarySheetsGroups <- function(env)
   par(mfrow=c(2,1))
   par(mar=c(5,3,3,2))
   
-  b<-barplot( S, col=env$group.colors[names(S)], main="Correlation Silhouette", names.arg=if(ncol(env$indata)<80) names(S) else rep("",length(S)), las=2, cex.main=1, cex.lab=1, cex.axis=0.8, cex.names=0.6, border = ifelse(ncol(env$indata)<80,"black",NA), xpd=FALSE, ylim=c(-.25,1) )  
+  b<-barplot( S, col=env$group.colors[names(S)], main="Correlation Silhouette", names.arg=if(ncol(env$seuratObject)<80) names(S) else rep("",length(S)), las=2, cex.main=1, cex.lab=1, cex.axis=0.8, cex.names=0.6, border = ifelse(ncol(env$seuratObject)<80,"black",NA), xpd=FALSE, ylim=c(-.25,1) )  
   mtext("S",2,line=1.9,cex=0.8)
   abline( h=c(0,0.25,0.5,0.75), lty=2, col="gray80" )
   title( main= bquote("<" ~ s ~ "> = " ~ .(round(mean(S),2))), line=0.5, cex.main=1 )
   box()
-  points( b, rep(-0.2,ncol(env$indata)), pch=15, cex=1, col=env$groupwise.group.colors[apply( group.correlations[,names(S)], 2, which.max )] )
+  points( b, rep(-0.2,ncol(env$seuratObject)), pch=15, cex=1, col=env$groupwise.group.colors[apply( group.correlations[,names(S)], 2, which.max )] )
   
   mean.boxes <- by( S, env$group.labels, c )[ unique( env$group.labels ) ]
   mean.mean.S <- sapply( mean.boxes, mean )

@@ -2,11 +2,11 @@ pipeline.calcStatistics <- function(env)
 {
   util.info("Calculating Single Gene Statistic")
  
-  env$WAD.g.m <- matrix(NA, nrow(env$indata), ncol(env$indata), dimnames=list(rownames(env$indata), colnames(env$indata)))
+  env$WAD.g.m <- matrix(NA, nrow(env$seuratObject), ncol(env$seuratObject), dimnames=list(rownames(env$seuratObject), colnames(env$seuratObject)))
   
-  for (m in 1:ncol(env$indata))
+  for (m in 1:ncol(env$seuratObject))
   {
-    delta.e.g.m <- env$indata[,m]
+    delta.e.g.m <- env$seuratObject@assays$RNA@data[,m]
   
     w.g.m <- (delta.e.g.m - min(delta.e.g.m)) / (max(delta.e.g.m) - min(delta.e.g.m))
     env$WAD.g.m[,m] <- w.g.m * delta.e.g.m
@@ -15,24 +15,24 @@ pipeline.calcStatistics <- function(env)
   
   # Calculate T-score and significance
   
-  sd.g.m <- matrix(NA, nrow(env$indata), ncol(env$indata), dimnames=list(rownames(env$indata), colnames(env$indata)))
+  sd.g.m <- matrix(NA, nrow(env$seuratObject), ncol(env$seuratObject), dimnames=list(rownames(env$seuratObject), colnames(env$seuratObject)))
   
-  env$t.g.m <- matrix(NA, nrow(env$indata), ncol(env$indata), dimnames=list(rownames(env$indata), colnames(env$indata)))
-  env$p.g.m <- matrix(NA, nrow(env$indata), ncol(env$indata), dimnames=list(rownames(env$indata), colnames(env$indata)))
+  env$t.g.m <- matrix(NA, nrow(env$seuratObject), ncol(env$seuratObject), dimnames=list(rownames(env$seuratObject), colnames(env$seuratObject)))
+  env$p.g.m <- matrix(NA, nrow(env$seuratObject), ncol(env$seuratObject), dimnames=list(rownames(env$seuratObject), colnames(env$seuratObject)))
   
-  env$n.0.m <- rep(NA, ncol(env$indata))
-  names(env$n.0.m) <- colnames(env$indata)
+  env$n.0.m <- rep(NA, ncol(env$seuratObject))
+  names(env$n.0.m) <- colnames(env$seuratObject)
   
-  env$perc.DE.m <- rep(NA, ncol(env$indata))
-  names(env$perc.DE.m) <- colnames(env$indata)
+  env$perc.DE.m <- rep(NA, ncol(env$seuratObject))
+  names(env$perc.DE.m) <- colnames(env$seuratObject)
   
-  env$fdr.g.m <- matrix(NA, nrow(env$indata), ncol(env$indata), dimnames=list(rownames(env$indata), colnames(env$indata)))
-  env$Fdr.g.m <- matrix(NA, nrow(env$indata), ncol(env$indata), dimnames=list(rownames(env$indata), colnames(env$indata)))
+  env$fdr.g.m <- matrix(NA, nrow(env$seuratObject), ncol(env$seuratObject), dimnames=list(rownames(env$seuratObject), colnames(env$seuratObject)))
+  env$Fdr.g.m <- matrix(NA, nrow(env$seuratObject), ncol(env$seuratObject), dimnames=list(rownames(env$seuratObject), colnames(env$seuratObject)))
   
 
   o <- order(env$indata.gene.mean)
-  sdo <- apply(env$indata, 1, sd)[o]
-  col <- Get.Running.Average(sdo, min(200, round(nrow(env$indata) * 0.02)))
+  sdo <- apply(env$seuratObject@assays$RNA@data, 1, sd)[o]
+  col <- Get.Running.Average(sdo, min(200, round(nrow(env$seuratObject) * 0.02)))
   col[which(is.nan(col))] <- 0.0000000001
   col[which(col == 0)] <- 0.0000000001
 
@@ -43,16 +43,16 @@ pipeline.calcStatistics <- function(env)
 
   sd.g.m[o,] <- col
 
-  env$t.g.m <- apply(env$indata, 2, function(x, root)
+  env$t.g.m <- apply(env$seuratObject@assays$RNA@data, 2, function(x, root)
   {
     return(root * x / sd.g.m[,1])
-  }, sqrt(ncol(env$indata)))
+  }, sqrt(ncol(env$seuratObject)))
 
 
 
   ### calculate significance and fdr ###
 
-  for (m in 1:ncol(env$indata))
+  for (m in 1:ncol(env$seuratObject))
   {
 #    p.g.m[,m] <<- 2 - 2*pt( abs(t.g.m[,m]), ncol(indata) - 1 )
     
@@ -73,7 +73,7 @@ pipeline.calcStatistics <- function(env)
       env$perc.DE.m[m] <- 1 - env$n.0.m[m]
     } else # happens for eg phenotype data
     {
-      env$p.g.m[,m] <- order(env$indata[,m]) / nrow(env$indata)
+      env$p.g.m[,m] <- order(env$seuratObject@assays$RNA@data[,m]) / nrow(env$seuratObject)
       env$fdr.g.m[,m] <- env$p.g.m[,m]
       env$Fdr.g.m[,m] <- env$p.g.m[,m]
 
@@ -87,13 +87,13 @@ pipeline.calcStatistics <- function(env)
   util.info("Calculating Metagene Statistic")
 
   env$t.m <- env$p.m <-
-    matrix(NA, env$preferences$dim.1stLvlSom ^ 2, ncol(env$indata),
-           dimnames=list(1:(env$preferences$dim.1stLvlSom ^ 2), colnames(env$indata)))
+    matrix(NA, env$preferences$dim.1stLvlSom ^ 2, ncol(env$seuratObject),
+           dimnames=list(1:(env$preferences$dim.1stLvlSom ^ 2), colnames(env$seuratObject)))
 
   t.m.help <- do.call(rbind, by(env$t.g.m, env$som.result$feature.BMU, colMeans))
   env$t.m[rownames(t.m.help),] <- t.m.help
 
-  for (m in 1:ncol(env$indata))
+  for (m in 1:ncol(env$seuratObject))
   {
     suppressWarnings({
       try.res <- try({

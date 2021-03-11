@@ -40,7 +40,7 @@ pipeline.qualityCheck <- function(env)
 
 	
 	indata.sample.sd <- apply(env$indata, 2, sd)
-	indata.sample.mean <- colMeans(env$indata)
+	indata.sample.mean <- Matrix::colMeans(env$indata)
 
 	Q13 <- quantile( indata.sample.mean, c(0.25,0.75) )
 	IQR1.mean <- c( Q13[1] - 1*diff( Q13 ), Q13[2] + 1*diff( Q13 ) )

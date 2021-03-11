@@ -88,7 +88,7 @@ pipeline.htmlSummary <- function(env)
   #### Overview ####
   
   filename <- file.path(paste(env$files.name , "- Results"), "Summary.html")
-  `outfile <- file(filename, "w")
+  outfile <- file(filename, "w")
 
   
   # <ul>
@@ -118,11 +118,11 @@ pipeline.htmlSummary <- function(env)
         <dt>Dataset name</dt>
         <dd>", env$preferences$dataset.name, "</dd>
         <dt>Number of samples</dt>
-        <dd>", ncol(env$indata), "</dd>
+        <dd>", ncol(env$seuratObject), "</dd>
         <dt>Number of groups</dt>
         <dd>", length(unique(env$group.labels)), "</dd>
         <dt>Number of genes</dt>
-        <dd>", nrow(env$indata), "</dd>
+        <dd>", nrow(env$seuratObject), "</dd>
         <dt>ID type of genes</dt>
         <dd>", ifelse( env$preferences$database.id.type!="", env$preferences$database.id.type, "not defined" ), "</dd>
         <dt>Dimension of the SOM</dt>

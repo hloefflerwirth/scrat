@@ -10,7 +10,7 @@ scrat.markerReport <- function(env,f)
   marker.set <- marker.set[which(marker.set!="")]
   n <- sub(".txt","",tail(strsplit(f,"/")[[1]],1))
   
-  ylim <- quantile(env$indata,c(0.01,0.99))
+  ylim <- quantile(env$seuratObject@assays$RNA@data,c(0.01,0.99))
 
   dir.create(paste(env$files.name, "- Results/Marker Set Reports"), showWarnings=FALSE)
   filename <- file.path(paste(env$files.name, "- Results"),"Marker Set Reports",paste(n,".pdf",sep=""))
@@ -19,7 +19,7 @@ scrat.markerReport <- function(env,f)
     #### Profile + Heatmap
     layout(matrix(c(1,2,3),ncol=1,byrow=T),heights=c(1.5,0.5,4))
     
-    gs.indata <- env$indata[marker.set,]
+    gs.indata <- env$seuratObject@assays$RNA@data[marker.set,]
     
     o.genes <- if(length(marker.set)>1) hclust(dist(gs.indata))$order else 1
     o.samples <- order(colMeans(gs.indata))
@@ -29,7 +29,7 @@ scrat.markerReport <- function(env,f)
     
     par(mar=c(0,10,5,16))
     barplot( colMeans(gs.indata)[o.samples]-offset, ylab="", xlab="", ylim=ylim-offset, xaxt="n", xaxs="i",
-             col=env$group.colors[o.samples], xpd=TRUE, space=c(0,0), offset=0, axes=FALSE, border=if (ncol(env$indata) < 100) "black" else NA )
+             col=env$group.colors[o.samples], xpd=TRUE, space=c(0,0), offset=0, axes=FALSE, border=if (ncol(env$seuratObject) < 100) "black" else NA )
     abline( h=0-offset, lty=2, col="gray" )
     axis( 2, at=seq(from=0,to=(max(colMeans(gs.indata))-offset),length.out=4), labels=round(seq(from=offset,to=max(colMeans(gs.indata)),length.out=4),2),las=2, cex.axis=1.4)
     mtext( n, side=3, cex=1.5, line=1 )
@@ -41,7 +41,7 @@ scrat.markerReport <- function(env,f)
     legend(x=0.86,y=0.7,names(env$groupwise.group.colors),text.col=env$groupwise.group.colors)
     
     par(mar=c(0.5,10,0.5,16))
-    image( matrix(1:ncol(env$indata),ncol(env$indata),1), col=env$group.colors[o.samples], axes=FALSE )
+    image( matrix(1:ncol(env$seuratObject),ncol(env$seuratObject),1), col=env$group.colors[o.samples], axes=FALSE )
     box()
     
     par(mar=c(10,10,0,16))
@@ -64,8 +64,8 @@ scrat.markerReport <- function(env,f)
     par(mar=c(14,4,4,1))
     barplot(colMeans(gs.indata), beside=TRUE,
             las=2, cex.names=1.2, cex.axis=1.4, col=env$group.colors, 
-            ylim=ylim, border=if (ncol(env$indata) < 100) "black" else NA,
-            names.arg=rep("",ncol(env$indata)))
+            ylim=ylim, border=if (ncol(env$seuratObject) < 100) "black" else NA,
+            names.arg=rep("",ncol(env$seuratObject)))
     
     mtext( n, side=3, cex=1.5, line=1 )
     mtext( "< e >", side=2, line=2.5, cex=1.25)

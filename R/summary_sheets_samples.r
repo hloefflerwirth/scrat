@@ -1,6 +1,14 @@
 pipeline.summarySheetsSamples <- function(env)
 {
-  if(ncol(env$indata) >= 1000) return()
+  if (exists("seuratObject", envir = env)){
+    indata = env$seuratObject
+    indata.values = env$seuratObject@assays$RNA@data
+  } else {
+    indata = env$indata
+    indata.values = env$indata
+  }
+  
+  if(ncol(indata) >= 1000) return()
     
   dir.create(env$output.paths["Summary Sheets Samples"], showWarnings=FALSE)
 
@@ -14,7 +22,7 @@ pipeline.summarySheetsSamples <- function(env)
 
   ylim.max <- 0
 
-  for (m in 1:ncol(env$indata))
+  for (m in 1:ncol(indata))
   {
     h <- hist(env$p.g.m[,m], bre=20, plot=FALSE)
     y.max <- max(h$density)
@@ -27,9 +35,9 @@ pipeline.summarySheetsSamples <- function(env)
 
   util.info("Writing:", file.path(env$output.paths["Summary Sheets Samples"], "*.pdf"))
 
-  for (m in 1:ncol(env$indata))
+  for (m in 1:ncol(indata))
   {
-    basename <- paste(make.names(make.unique(colnames(env$indata))[m]), ".pdf", sep="")
+    basename <- paste(make.names(make.unique(colnames(indata))[m]), ".pdf", sep="")
     pdf(file.path(env$output.paths["Summary Sheets Samples"], basename), 29.7/2.54, 21/2.54, useDingbats=FALSE)
 
     ## Global Sheet
@@ -37,13 +45,13 @@ pipeline.summarySheetsSamples <- function(env)
     par(mar=c(0,0,0,0))
     plot(0, type="n", axes=FALSE, xlab="", ylab="", xlim=c(0,1), ylim=c(0,1))
 
-    text(0.1, 0.94, colnames(env$indata)[m] , cex=3, adj=0)
+    text(0.1, 0.94, colnames(indata)[m] , cex=3, adj=0)
     text(0.1, 0.8, "Global Summary" , cex=1.8, adj=0)
-    text(0.1, 0.7,  paste("%DE =", round(env$perc.DE.m[colnames(env$indata)[m]], 2)), adj=0)
+    text(0.1, 0.7,  paste("%DE =", round(env$perc.DE.m[colnames(indata)[m]], 2)), adj=0)
 
     all.fdr.genes <- which(env$fdr.g.m[,m] < 0.2)
-    plus.fdr.genes <- which(env$indata[all.fdr.genes, m] > 0)
-    minus.fdr.genes <- which(env$indata[all.fdr.genes, m] <= 0)
+    plus.fdr.genes <- which(indata.values[all.fdr.genes, m] > 0)
+    minus.fdr.genes <- which(indata.values[all.fdr.genes, m] <= 0)
 
     text(0.1, 0.65, paste("# genes with fdr < 0.2  =",
                           length(all.fdr.genes), " (",
@@ -51,8 +59,8 @@ pipeline.summarySheetsSamples <- function(env)
                           length(minus.fdr.genes), " -)"), adj=0)
 
     all.fdr.genes <- which(env$fdr.g.m[,m] < 0.1)
-    plus.fdr.genes <- which(env$indata[all.fdr.genes, m] > 0)
-    minus.fdr.genes <- which(env$indata[all.fdr.genes, m] <= 0)
+    plus.fdr.genes <- which(indata.values[all.fdr.genes, m] > 0)
+    minus.fdr.genes <- which(indata.values[all.fdr.genes, m] <= 0)
 
     text(0.1, 0.6, paste("# genes with fdr < 0.1  =",
                          length(all.fdr.genes)," (",
@@ -60,8 +68,8 @@ pipeline.summarySheetsSamples <- function(env)
                          length(minus.fdr.genes), " -)"), adj=0)
 
     all.fdr.genes <- which(env$fdr.g.m[,m] < 0.05)
-    plus.fdr.genes <- which(env$indata[all.fdr.genes, m] > 0)
-    minus.fdr.genes <- which(env$indata[all.fdr.genes, m] <= 0)
+    plus.fdr.genes <- which(indata.values[all.fdr.genes, m] > 0)
+    minus.fdr.genes <- which(indata.values[all.fdr.genes, m] <= 0)
 
     text(0.1, 0.55, paste("# genes with fdr < 0.05  =",
                           length(all.fdr.genes)," (",
@@ -69,8 +77,8 @@ pipeline.summarySheetsSamples <- function(env)
                           length(minus.fdr.genes), " -)"), adj=0)
 
     all.fdr.genes <- which(env$fdr.g.m[,m] < 0.01)
-    plus.fdr.genes <- which(env$indata[all.fdr.genes, m] > 0)
-    minus.fdr.genes <- which(env$indata[all.fdr.genes, m] <= 0)
+    plus.fdr.genes <- which(indata.values[all.fdr.genes, m] > 0)
+    minus.fdr.genes <- which(indata.values[all.fdr.genes, m] <= 0)
 
     text(0.1, 0.5, paste("# genes with fdr < 0.01 =",
                          length(all.fdr.genes)," (",
@@ -78,7 +86,7 @@ pipeline.summarySheetsSamples <- function(env)
                          length(minus.fdr.genes), " -)"), adj=0)
 
     text(0.1, 0.425, paste("# genes in genesets =", n.genes.in.genesets), adj=0)
-    text(0.1, 0.35,  paste("<FC> =", round(mean(env$indata[,m]), 2)), adj=0)
+    text(0.1, 0.35,  paste("<FC> =", round(mean(indata.values[,m]), 2)), adj=0)
     text(0.1, 0.3, paste("<t-score> =", round(mean(env$t.g.m[,m]), 2)), adj=0)
     text(0.1, 0.25,  paste("<p-value> =", round(10 ^ mean(log10(env$p.g.m[,m])), 2)), adj=0)
     text(0.1, 0.2, paste("<fdr> =", round(mean(env$fdr.g.m[,m]), 2)), adj=0)
@@ -145,9 +153,9 @@ pipeline.summarySheetsSamples <- function(env)
          cex=1, adj=0)
 
     text(x.coords[1], y.coords, c(1:n.genes), adj=0)
-    text(x.coords[2], y.coords, rownames(env$indata)[o], cex=0.6, adj=0)
+    text(x.coords[2], y.coords, rownames(indata)[o], cex=0.6, adj=0)
     rect(x.coords[3]-0.02, y.coords[1]+0.01, 1, 0, border="white", col="white")
-    text(x.coords[3], y.coords, round(env$indata[o, m], 2), cex=0.6, adj=0)
+    text(x.coords[3], y.coords, round(indata.values[o, m], 2), cex=0.6, adj=0)
     text(x.coords[4], y.coords, format(env$p.g.m[o, m], digits=1), cex=0.6, adj=0)
     text(x.coords[5], y.coords, format(env$fdr.g.m[o, m], digits=1), cex=0.6, adj=0)
     text(x.coords[6], y.coords, env$gene.info$coordinates[o], cex=0.6, adj=0)
@@ -162,9 +170,9 @@ pipeline.summarySheetsSamples <- function(env)
     #box()
     #mtext("Density", side=2, line=3, cex=1)
     #mtext("FDR", side=4, line=3, cex=1)
-    #mtext(paste("%DE =", round(env$perc.DE.m[colnames(env$indata)[m]] ,2)), line=-1.2, cex=0.5)
+    #mtext(paste("%DE =", round(env$perc.DE.m[colnames(indata)[m]] ,2)), line=-1.2, cex=0.5)
 
-    #abline(h=env$n.0.m[colnames(env$indata)[m]], col="gray", lwd=2)
+    #abline(h=env$n.0.m[colnames(indata)[m]], col="gray", lwd=2)
 
     #par(new=TRUE)
     #plot(0, type="n", xlim=c(0,1), ylim=c(0,1), xlab="", ylab="", axes=FALSE)

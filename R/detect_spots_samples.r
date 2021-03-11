@@ -101,14 +101,20 @@ get.neighbors <- function(x, y, dim)
 
 pipeline.detectSpotsSamples <- function(env)
 {
+  if (exists("seuratObject", envir = env)){
+    indata = env$seuratObject
+  } else {
+    indata = env$indata
+  }
+  
   env$spot.list.samples <- list()
-
-  for (j in 1:ncol(env$indata))
+  
+  for (j in 1:ncol(indata))
   {
     env$spot.list.samples[[j]] <- list()
   }
 
-  names(env$spot.list.samples) <- colnames(env$indata)
+  names(env$spot.list.samples) <- colnames(indata)
   
   return(env)
 }

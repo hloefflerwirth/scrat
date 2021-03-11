@@ -1,8 +1,12 @@
 pipeline.genesetStatisticSamples <- function(env)
 {
-
+  if (exists("seuratObject", envir = env)){
+    indata = env$seuratObject
+  } else {
+    indata = env$indata
+  }
   ### perform GS analysis ###
-  env$t.ensID.m <- env$t.g.m[which(rownames(env$indata) %in% names(env$gene.info$ids)),]
+  env$t.ensID.m <- env$t.g.m[which(rownames(indata) %in% names(env$gene.info$ids)),]
   env$t.ensID.m <- do.call(rbind, by(env$t.ensID.m, env$gene.info$ids, colMeans))
 
   if (env$preferences$activated.modules$geneset.analysis.exact)
@@ -15,7 +19,7 @@ pipeline.genesetStatisticSamples <- function(env)
         list(Genes=sample(env$unique.protein.ids, length(env$gs.def.list[[i]]$Genes)))
     }
 
-    null.scores <- sapply( 1:ncol(env$indata), function(m)
+    null.scores <- sapply( 1:ncol(indata), function(m)
     {
       all.gene.statistic <- env$t.ensID.m[,m]
       spot.gene.ids <- env$unique.protein.ids
@@ -46,7 +50,7 @@ pipeline.genesetStatisticSamples <- function(env)
 
     return(x)
   })
-  names(env$spot.list.samples) <- colnames(env$indata)
+  names(env$spot.list.samples) <- colnames(indata)
   
   ### GSZ table output ###
   env$samples.GSZ.scores <- do.call(cbind, lapply(env$spot.list.samples, function(x)

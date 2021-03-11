@@ -1,9 +1,9 @@
 pipeline.prepareAnnotation <- function(env)
 {
-  empty.vec.chr <- rep("", nrow(env$indata))
-  names(empty.vec.chr) <- rownames(env$indata)
-  empty.vec.num <- rep(NA, nrow(env$indata))
-  names(empty.vec.num) <- rownames(env$indata)
+  empty.vec.chr <- rep("", nrow(env$seuratObject))
+  names(empty.vec.chr) <- rownames(env$seuratObject)
+  empty.vec.num <- rep(NA, nrow(env$seuratObject))
+  names(empty.vec.num) <- rownames(env$seuratObject)
   mode(empty.vec.num)  <- "numeric"
   
   env$gene.info <- list( ids = empty.vec.chr,
@@ -35,7 +35,7 @@ pipeline.prepareAnnotation <- function(env)
       suppressWarnings({  biomart.table <-
         getBM(c(env$preferences$database.id.type, query),
               env$preferences$database.id.type,
-              rownames(env$indata)[seq(1,nrow(env$indata),length.out=100)],
+              rownames(env$seuratObject)[seq(1,nrow(env$seuratObject),length.out=100)],
               mart, checkFilters=FALSE)  })
     }, silent=TRUE)
 
@@ -68,9 +68,9 @@ pipeline.prepareAnnotation <- function(env)
   try({
     biomart.table <- getBM(c(env$preferences$database.id.type, query,
         "description","ensembl_gene_id","chromosome_name","band","start_position"),
-        env$preferences$database.id.type, rownames(env$indata), mart, checkFilters=FALSE)  
+        env$preferences$database.id.type, rownames(env$seuratObject), mart, checkFilters=FALSE)  
 
-    biomart.table <- biomart.table[ which(biomart.table[,1]%in%rownames(env$indata)), ]
+    biomart.table <- biomart.table[ which(biomart.table[,1]%in%rownames(env$seuratObject)), ]
   }, silent=TRUE)  
   
   if (is.null(biomart.table) || nrow(biomart.table) == 0)

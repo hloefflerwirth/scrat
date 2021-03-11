@@ -49,9 +49,3 @@ util.progress <- function(cur, max, len=48) {
 util.progress.terminate <- function(len=48) {
   util.info(paste("[", paste(rep("#", len), collapse=""), "]", sep=""))
 }
-
-#
-util.call <- function(fn, env) {
-  environment(fn) <- env
-  return(fn())
-}

@@ -12,7 +12,7 @@ pipeline.detectSpotsIntegral <- function(env)
   sample.spot.core.list <- list()
   n.sample.modules <- 0
 
-  for (m in 1:ncol(env$indata))
+  for (m in 1:ncol(env$seuratObject))
   {
     # define bigger core regions
     core <- matrix(NA, env$preferences$dim.1stLvlSom, env$preferences$dim.1stLvlSom)
@@ -208,7 +208,7 @@ pipeline.detectSpotsIntegral <- function(env)
   for (i in seq_along(sample.spot.list))
   {
     spot.metagenes <- which(!is.na(sample.spot.list[[i]]))
-    spot.genes <- rownames(env$indata)[which(env$som.result$feature.BMU %in% spot.metagenes)]
+    spot.genes <- rownames(env$seuratObject)[which(env$som.result$feature.BMU %in% spot.metagenes)]
 
     if (length(spot.genes) > 0)
     {
@@ -243,14 +243,14 @@ pipeline.detectSpotsIntegral <- function(env)
     {
       if (length(x$genes > 0))
       {
-        colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        Matrix::colMeans(env$seuratObject[x$genes,,drop=FALSE],na.rm=TRUE)
       } else
       {
-        rep(0, ncol(env$indata))
+        rep(0, ncol(env$seuratObject))
       }
     }))
 
-  colnames(env$spot.list.overexpression$spotdata) <- colnames(env$indata)
+  colnames(env$spot.list.overexpression$spotdata) <- colnames(env$seuratObject)
 
 
   ##### K-Means Clustering #####
@@ -266,7 +266,7 @@ pipeline.detectSpotsIntegral <- function(env)
   for (i in 1:n.cluster)
   {
     nodes <- which(res$cluster == i)
-    geneset.genes <- rownames(env$indata)[which(env$som.result$feature.BMU %in% nodes)]
+    geneset.genes <- rownames(env$seuratObject)[which(env$som.result$feature.BMU %in% nodes)]
 
     if (length(geneset.genes) > 0)
     {
@@ -301,14 +301,14 @@ pipeline.detectSpotsIntegral <- function(env)
     {
       if (length(x$genes > 0))
       {
-        colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        Matrix::colMeans(env$seuratObject[x$genes,,drop=FALSE],na.rm=TRUE)
       } else
       {
-        rep(0, ncol(env$indata))
+        rep(0, ncol(env$seuratObject))
       }
     }))
 
-  colnames(env$spot.list.kmeans$spotdata) <- colnames(env$indata)
+  colnames(env$spot.list.kmeans$spotdata) <- colnames(env$seuratObject)
 
 
   ##### Group Spots ######
@@ -516,7 +516,7 @@ pipeline.detectSpotsIntegral <- function(env)
     for (i in seq_along(sample.spot.list))
     {
       spot.metagenes <- which(!is.na(sample.spot.list[[i]]))
-      spot.genes <- rownames(env$indata)[which(env$som.result$feature.BMU %in% spot.metagenes)]
+      spot.genes <- rownames(env$seuratObject)[which(env$som.result$feature.BMU %in% spot.metagenes)]
 
       if (length(spot.genes) > 0)
       {
@@ -566,14 +566,14 @@ pipeline.detectSpotsIntegral <- function(env)
       {
         if (length(x$genes > 0))
         {
-          colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+          Matrix::colMeans(env$seuratObject[x$genes,,drop=FALSE],na.rm=TRUE)
         } else
         {
-          rep(0, ncol(env$indata))
+          rep(0, ncol(env$seuratObject))
         }
       }))
 
-    colnames(env$spot.list.group.overexpression$spotdata) <- colnames(env$indata)
+    colnames(env$spot.list.group.overexpression$spotdata) <- colnames(env$seuratObject)
   }
   
   
@@ -647,7 +647,7 @@ pipeline.detectSpotsIntegral <- function(env)
   for (i in seq_along(sort(unique(na.omit(as.vector(spot.matrix))))) )
   {
     spot.metagenes <- which(spot.matrix==i)
-    spot.genes <- rownames(env$indata)[which(env$som.result$feature.BMU %in% spot.metagenes)]
+    spot.genes <- rownames(env$seuratObject)[which(env$som.result$feature.BMU %in% spot.metagenes)]
     
     if (length(spot.genes) > 0)
     {
@@ -675,10 +675,10 @@ pipeline.detectSpotsIntegral <- function(env)
     {
       if (length(x$genes > 0))
       {
-        colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        Matrix::colMeans(env$seuratObject[x$genes,,drop=FALSE],na.rm=TRUE)
       } else
       {
-        rep(0, ncol(env$indata))
+        rep(0, ncol(env$seuratObject))
       }
     }))
   
@@ -720,14 +720,14 @@ pipeline.detectSpotsIntegral <- function(env)
     {
       if (length(x$genes > 0))
       {
-        colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        Matrix::colMeans(env$seuratObject[x$genes,,drop=FALSE],na.rm=TRUE)
       } else
       {
-        rep(0, ncol(env$indata))
+        rep(0, ncol(env$seuratObject))
       }
     }))
   
-  colnames(env$spot.list.dmap$spotdata) <- colnames(env$indata)
+  colnames(env$spot.list.dmap$spotdata) <- colnames(env$seuratObject)
   
   # check standard spot modules
   if( length( env[[paste("spot.list.", env$preferences$standard.spot.modules,sep="")]]$spots ) < 2 )

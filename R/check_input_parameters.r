@@ -185,11 +185,28 @@ pipeline.checkInputParameters <- function(env)
   }
 
   #### check input data ####
-  if (is.null(env$indata))
-  {
-    util.fatal("No indata supplied!")
+  if(is.null(env$indata)){
+    util.fatal("No data supplied!")
     env$passedInputChecking <- FALSE
     return(env)
+  }
+  
+  if (is(env$indata, "character")) {
+    util.info("Loading data from 10X from directory. This may take several time until next notification.")
+    
+    suppressWarnings({
+      try.res <- try({
+        env$indata <- Read10X(data.dir = env$indata)
+      }, silent=TRUE)
+    })
+    
+    if (is(try.res,"try-error")){
+      util.fatal("Given diretory is invalid, cannot read input data.")
+      env$passedInputChecking <- FALSE
+      return(env)
+    }
+    
+    env$preferences$indata.counts <- TRUE
   }
   
   if ( "assayData" %in% slotNames( env$indata ) )
@@ -198,11 +215,13 @@ pipeline.checkInputParameters <- function(env)
     {
       env$indata <- env$indata@assayData$exprs    
       util.info("Expression data extracted from assayData slot.")
+      env$preferences$indata.counts <- FALSE
     }
     else
     {
       env$indata <- env$indata@assayData$counts
       util.info("Count data extracted from assayData slot.")
+      env$preferences$indata.counts <- TRUE
     }
   }
   
@@ -214,15 +233,15 @@ pipeline.checkInputParameters <- function(env)
   
   
   
-  if (!is(env$indata, "matrix") && (is.null(dim(env$indata)) || dim(env$indata) < 1))
+  if (!(is(env$indata, "matrix") || is(env$indata, "dgCMatrix")) && (is.null(dim(env$indata)) || dim(env$indata) < 1))
   {
     util.fatal("Invalid indata! Provide a two-dimensional numerical matrix.")
     env$passedInputChecking <- FALSE
     return(env)
   }
   
-  if (!is(env$indata,"matrix") ||
-      mode(env$indata) != "numeric" )
+  if ((!(is(env$indata,"matrix")) || mode(env$indata) != "numeric")  &&
+      !is(env$indata, "dgCMatrix"))
       # storage.mode(indata) != "numeric")
   {
     rn <- rownames(env$indata)
