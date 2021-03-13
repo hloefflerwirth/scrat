@@ -10,7 +10,6 @@ pipeline.summarySheetSeurat <- function(env){
   
   pdf(dirname, 21/2.54, 29.7/2.54, useDingbats=FALSE)
   
-  
   # Gennamen:
   #env$seuratObject@assays$RNA@var.features
   # numeric metadata
@@ -19,13 +18,11 @@ pipeline.summarySheetSeurat <- function(env){
   # factor metadata
   #metadata_factor = env$seuratObject@meta.data[, unlist(lapply(env$seuratObject@meta.data, is.factor))]
   #metadata_factor_names = colnames(metadata_factor)
-  metadata_factor_names = c("group.labels", "orig.ident", "seurat_clusters", "metacellLabelsLvl1", "metacellLabelsLvl2")
+  metadata_factor_names = c("group.labels", "orig.ident", "seurat_clusters", "metacellLabelsLvl1", "metacellLabelsLvl2", "cellInMetacell")
   metadata_factor = env$seuratObject@meta.data[, metadata_factor_names]
   # get number of levels per factor
   n_levels = mapply(metadata_factor, FUN = function(X){length(levels(X))})
 
-  
-  #FeatureScatter(env$seuratObject, feature1 = "nCount_RNA", feature2 = "percent_mt")
   # Plot Metadata with more than one level
   plot_list<- list()
   plot_list[[1]] <- DimPlot(env$seuratObject, reduction = "tsne", group.by = c(metadata_factor_names[(n_levels>1)]), ncol = 3, combine = F)

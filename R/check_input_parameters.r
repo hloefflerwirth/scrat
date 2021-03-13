@@ -152,6 +152,19 @@ pipeline.checkInputParameters <- function(env)
     env$preferences$spot.threshold.groupmap <- 0.75
   }
   
+  if (!is.logical(env$preferences$indata.counts))
+  {
+    util.warn("Invalid value of \"indata.counts\". Using FALSE")
+    env$preferences$preprocessing$count.processing <- FALSE
+  }
+  
+  if (!is.character(env$preferences$dim.reduction) || length(env$preferences$dim.reduction)!=1 ||
+      !env$preferences$dim.reduction %in% c("tsne", "pca", "umap") )
+  {
+    util.warn("Invalid value of \"dim.reduction\". Using \"tsne\"")
+    env$preferences$dim.reduction <- "tsne"
+  }
+  
   if (!is.list(env$preferences$preprocessing))
   {
     util.warn("Invalid value of \"preprocessing\". Using default setting.")
@@ -159,7 +172,9 @@ pipeline.checkInputParameters <- function(env)
       count.processing = FALSE,
       cellcycle.correction = FALSE,
       feature.centralization = TRUE,
-      sample.quantile.normalization = TRUE )
+      sample.quantile.normalization = TRUE,
+      seurat.normalize = TRUE,
+      create.meta.cell = TRUE )
   } else
   {
     if (!is.logical(env$preferences$preprocessing$count.processing))
@@ -181,7 +196,22 @@ pipeline.checkInputParameters <- function(env)
     {
       util.warn("Invalid value of \"preprocessing$sample.quantile.normalization\". Using TRUE")
       env$preferences$preprocessing$sample.quantile.normalization <- TRUE
+    } 
+    if (!is.logical(env$preferences$preprocessing$seurat.normalize))
+    {
+      util.warn("Invalid value of \"preprocessing$seurat.normalize\". Using TRUE")
+      env$preferences$preprocessing$seurat.normalize <- TRUE
+    }   
+    if (!is.logical(env$preferences$preprocessing$create.meta.cell))
+    {
+      util.warn("Invalid value of \"preprocessing$create.meta.cell\". Using TRUE")
+      env$preferences$preprocessing$create.meta.cell <- TRUE
     }    
+    if (!env$preferences$preprocessing$seurat.normalize && env$preferences$preprocessing$cellcycle.correction)
+    {
+      util.warn("Can't perform cellcycle correction without seurat normalization. Disabling cellcycle correction")
+      env$preferences$preprocessing$cellcycle.correction <- FALSE
+    }
   }
 
   #### check input data ####
