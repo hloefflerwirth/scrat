@@ -2,6 +2,10 @@ exportPattern("^scrat.[[:alpha:]]+")
 
 import("biomaRt")
 import("VGAM")
+import("Seurat")
+import("grid")
+import("gridExtra")
+import("dplyr")
 
 importFrom("ape", "nj", "plot.phylo")
 importFrom("fastICA", "fastICA")

@@ -1,14 +1,8 @@
 pipeline.summarySheetSeurat <- function(env){
   
-  dirname <- paste(env$files.name, "- Results/Summary Sheets - Seurat")
-  dir.create(dirname, showWarnings=FALSE, recursive=TRUE)
-  
-  dirname <- file.path( paste(env$files.name, "- Results"),"Summary Sheets - Seurat","Seurat Clustering.pdf" )
-  
-  util.info("Writing:", file.path(dirname, "*.pdf"))
-  dir.create(dirname, showWarnings=FALSE, recursive=TRUE)
-  
-  pdf(dirname, 21/2.54, 29.7/2.54, useDingbats=FALSE)
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Clustering.pdf")
+  util.info("Writing:", filename)
+  pdf(filename, 21/2.54, 29.7/2.54, useDingbats=FALSE)
   
   # Gennamen:
   #env$seuratObject@assays$RNA@var.features

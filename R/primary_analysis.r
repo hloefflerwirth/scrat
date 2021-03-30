@@ -2,10 +2,10 @@ pipeline.cellcycleProcessing <- function(env)
 {
   util.info("Classification of cell cycle phase")   
   
-  if( any(row.names(env$seuratObject) %in% cc.genes.updated.2019$g2m.genes) || any(row.names(env$seuratObject) %in% cc.genes.updated.2019$s.genes) ){
+  if( any(row.names(env$seuratObject) %in% Seurat::cc.genes.updated.2019$g2m.genes) || any(row.names(env$seuratObject) %in% Seurat::cc.genes.updated.2019$s.genes) ){
     marker <- list()
-    marker$S <- cc.genes.updated.2019$s.genes
-    marker$G2M <- cc.genes.updated.2019$g2m.genes
+    marker$S <- Seurat::cc.genes.updated.2019$s.genes
+    marker$G2M <- Seurat::cc.genes.updated.2019$g2m.genes
   } else
   if( length(grep("ENSMUSG",row.names(env$seuratObject))>0) )
   {
@@ -18,8 +18,8 @@ pipeline.cellcycleProcessing <- function(env)
       return(humanx)
     }
     marker <- list()
-    marker$S <- convertHumanGeneList(cc.genes.updated.2019$s.genes)
-    marker$G2M <- convertHumanGeneList(cc.genes.updated.2019$g2m.genes)
+    marker$S <- convertHumanGeneList(Seurat::cc.genes.updated.2019$s.genes)
+    marker$G2M <- convertHumanGeneList(Seurat::cc.genes.updated.2019$g2m.genes)
   } else
   if( length(grep("ENSG",row.names(env$seuratObject))>0) )
   {
@@ -31,8 +31,8 @@ pipeline.cellcycleProcessing <- function(env)
       return(gene_ids)
     }
     marker <- list()
-    marker$S <- convertGeneList(cc.genes.updated.2019$s.genes)
-    marker$G2M <- convertGeneList(cc.genes.updated.2019$g2m.genes)
+    marker$S <- convertGeneList(Seurat::cc.genes.updated.2019$s.genes)
+    marker$G2M <- convertGeneList(Seurat::cc.genes.updated.2019$g2m.genes)
   } else
   {
     util.warn("Cell cycle markers only available for human and mouse organisms")

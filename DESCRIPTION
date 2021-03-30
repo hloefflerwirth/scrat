@@ -3,7 +3,7 @@ Title: Single Cell - R Analysis Toolbox
 Version: 2.0.2
 Description: This package translates microarray expression data into metadata of reduced dimension. It provides various sample-centered and group-centered visualizations, sample similarity analyses and functional enrichment analyses. The underlying SOM algorithm combines feature clustering, multidimensional scaling and dimension reduction, along with strong visualization capabilities. It enables extraction and description of functional expression modules inherent in the data.
 Depends: R (>= 3.0), igraph (>= 1.0.0), BiocGenerics (>= 0.27.1)
-Imports: fastICA, tsne, scatterplot3d, pixmap, fdrtool, ape, biomaRt, Biobase, RcppParallel, Rcpp
+Imports: fastICA, tsne, scatterplot3d, pixmap, fdrtool, ape, biomaRt, Biobase, RcppParallel, Rcpp, Seurat, grid, gridExtra, dplyr
 LinkingTo: RcppParallel, Rcpp
 License: GPL (>=2)
 Author: Henry Loeffler-Wirth <wirth@izbi.uni-leipzig.de> and Gray Camp <gray_camp@eva.mpg.de>
