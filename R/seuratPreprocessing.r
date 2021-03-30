@@ -3,7 +3,7 @@ pipeline.seuratPreprocessing <- function(env)
   util.info("Creating and preprocessing Seurat Object")
   colnames(env$indata) <- make.unique(colnames(env$indata))
   env$seuratObject  <- CreateSeuratObject(env$indata, project = env$preferences$dataset.name)
-  
+  remove(indata, envir = env)
   # preprocess count matrix
   if(env$preferences$indata.counts == TRUE){  
     # Quality-Control der counts 
@@ -33,7 +33,6 @@ pipeline.seuratPreprocessing <- function(env)
   env$seuratObject <- FindVariableFeatures(env$seuratObject, assay = 'RNA')
   env$seuratObject <- ScaleData(env$seuratObject)
   env$seuratObject <- RunPCA(env$seuratObject, npcs = min(dim(env$seuratObject)[2]-1, 100))
-  #TODO perplextiy had to be set < 20
   env$seuratObject <- RunTSNE(env$seuratObject, reduction = "pca", assay = 'RNA', dims = 1:50, perplexity = 5)
   env$seuratObject <- RunUMAP(env$seuratObject, assay = 'RNA', dims = 1:50)
   

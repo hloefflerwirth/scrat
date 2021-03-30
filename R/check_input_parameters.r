@@ -154,8 +154,8 @@ pipeline.checkInputParameters <- function(env)
   
   if (!is.logical(env$preferences$indata.counts))
   {
-    util.warn("Invalid value of \"indata.counts\". Using FALSE")
-    env$preferences$preprocessing$count.processing <- FALSE
+    util.warn("Invalid value of \"indata.counts\". Using TRUE")
+    env$preferences$preprocessing$indata.counts <- TRUE
   }
   
   if (!is.character(env$preferences$dim.reduction) || length(env$preferences$dim.reduction)!=1 ||
@@ -174,7 +174,7 @@ pipeline.checkInputParameters <- function(env)
       feature.centralization = TRUE,
       sample.quantile.normalization = TRUE,
       seurat.normalize = TRUE,
-      create.meta.cell = TRUE )
+      create.meta.cell = FALSE )
   } else
   {
     if (!is.logical(env$preferences$preprocessing$count.processing))
@@ -204,8 +204,8 @@ pipeline.checkInputParameters <- function(env)
     }   
     if (!is.logical(env$preferences$preprocessing$create.meta.cell))
     {
-      util.warn("Invalid value of \"preprocessing$create.meta.cell\". Using TRUE")
-      env$preferences$preprocessing$create.meta.cell <- TRUE
+      util.warn("Invalid value of \"preprocessing$create.meta.cell\". Using FALSE")
+      env$preferences$preprocessing$create.meta.cell <- FALSE
     }    
     if (!env$preferences$preprocessing$seurat.normalize && env$preferences$preprocessing$cellcycle.correction)
     {

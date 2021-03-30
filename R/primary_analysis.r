@@ -41,7 +41,6 @@ pipeline.cellcycleProcessing <- function(env)
 
   env$seuratObject <- CellCycleScoring(object = env$seuratObject, g2m.features = marker$G2M, s.features = marker$S)
   
-  #TODO check if this works
   if( any(is.na(env$seuratObject$S.Score)) || any(is.na(env$seuratObject$G2M.Score)))
   {
     util.warn("Cell cycle classificataion failed. Possibly too few features in data set.")
@@ -66,7 +65,6 @@ pipeline.cellcycleProcessing <- function(env)
     dev.off()
   }
   
-  #TODO
   if (env$preferences$preprocessing$cellcycle.correction)
   {
     util.info("Correction for cell cycle phase") 
@@ -102,8 +100,6 @@ pipeline.prepareIndata <- function(env)
 
 pipeline.generateSOM <- function(env)
 {
-  #TODO funktioniert so nicht
-  #env$indata = env$seuratObject@assays$RNA
   env$som.result <- som.linear.init(env$seuratObject@assays$RNA@data,somSize=env$preferences$dim.1stLvlSom)
   
   # Rotate/Flip First lvl SOMs

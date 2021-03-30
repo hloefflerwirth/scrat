@@ -4,11 +4,6 @@ pipeline.createMetacell <- function(seuratObject)
   patient.cluster <- table( seuratObject$seurat_clusters, seuratObject$orig.ident)
   patient.cluster <- patient.cluster / rowSums(patient.cluster)
   drop.cluster <- names( which( apply( patient.cluster, 1, function(x) sum( sort(x,decreasing=T)[1:2] ) ) > .8 ) )
-  # remove patients where xx% of cells belong to one cluster
-  # cluster.patient <- table( seuratObject$orig.ident, seuratObject$seurat_clusters )
-  # cluster.patient <- cluster.patient[ , which(!colnames(cluster.patient) %in% drop.cluster ) ]
-  # cluster.patient <- cluster.patient / rowSums(cluster.patient)
-  # barplot(t(cluster.patient))
 
   labels <- paste0( "c", seuratObject$seurat_clusters, " ", seuratObject$orig.ident )
   names(labels) <- colnames(seuratObject)
@@ -40,8 +35,6 @@ pipeline.createMetacell <- function(seuratObject)
   
   metacell.data <- matrix(NA,nrow(seuratObject),0,dimnames=list(rownames(seuratObject),c()))
   
-  #TODO was passiert hier?! achso, x =... ist Testfall für schleife
-  x = "c0 ac01"
   pb <-txtProgressBar(min = 0, max = length(labels.clusterNo),style=3)
   
   # create metacell.data, that is the center of kmeans cluster

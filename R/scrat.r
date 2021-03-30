@@ -79,7 +79,7 @@ scrat.new <- function(preferences=NULL)
                           spot.threshold.groupmap = 0.75,
                           adjust.autogroup.number = 0,
                           pseudotime.estimation = NULL,
-													indata.counts = FALSE,
+													indata.counts = TRUE,
 													dim.reduction = "tsne",
                           preprocessing = list(
                             count.processing = FALSE,
@@ -87,7 +87,7 @@ scrat.new <- function(preferences=NULL)
                             feature.centralization = TRUE,
                             sample.quantile.normalization = TRUE,
                             seurat.normalize = TRUE,
-                            create.meta.cell = TRUE) )
+                            create.meta.cell = FALSE) )
 
   # Merge user supplied information
   if (!is.null(preferences))
@@ -205,21 +205,42 @@ scrat.run <- function(env)
   
   if(env$preferences$activated.modules$reporting)
   {
- 
-    if(ncol(env$indata) < 1000)
-    {
-      util.info("Plotting Sample Portraits")
-      pipeline.sampleExpressionPortraits(env)
-    } 
+    if (exists("seuratObject", envir = env)){
+      if(ncol(env$seuratObject) < 1000)
+      {
+        util.info("Plotting Sample Portraits")
+        pipeline.sampleExpressionPortraits(env)
+      } 
+    } else {
+      if(ncol(env$indata) < 1000)
+      {
+        util.info("Plotting Sample Portraits")
+        pipeline.sampleExpressionPortraits(env)
+      } 
+    }
     
-    if ( env$preferences$activated.modules$sample.similarity.analysis && ncol(env$indata) > 2)
-    {    
-      util.info("Plotting Sample Similarity Analysis")
-      dir.create(file.path(paste(env$files.name, "- Results"), "Sample Similarity Analysis"), showWarnings=FALSE)
+    
+    if (exists("seuratObject", envir = env)){
+      if ( env$preferences$activated.modules$sample.similarity.analysis && ncol(env$seuratObject) > 2)
+      {    
+        util.info("Plotting Sample Similarity Analysis")
+        dir.create(file.path(paste(env$files.name, "- Results"), "Sample Similarity Analysis"), showWarnings=FALSE)
+        
+        pipeline.sampleSimilarityAnalysisED(env)
+        pipeline.sampleSimilarityAnalysisCor(env)
+        pipeline.sampleSimilarityAnalysisICA(env)
+      }
       
-      pipeline.sampleSimilarityAnalysisED(env)
-      pipeline.sampleSimilarityAnalysisCor(env)
-      pipeline.sampleSimilarityAnalysisICA(env)
+    } else {
+      if ( env$preferences$activated.modules$sample.similarity.analysis && ncol(env$indata) > 2)
+      {    
+        util.info("Plotting Sample Similarity Analysis")
+        dir.create(file.path(paste(env$files.name, "- Results"), "Sample Similarity Analysis"), showWarnings=FALSE)
+      
+        pipeline.sampleSimilarityAnalysisED(env)
+        pipeline.sampleSimilarityAnalysisCor(env)
+        pipeline.sampleSimilarityAnalysisICA(env)
+      }
     }
     
     util.info("Plotting Summary Sheets (Modules & PATs)")
