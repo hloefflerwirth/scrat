@@ -15,13 +15,10 @@ pipeline.createMetacell <- function(seuratObject)
   sort( table(labels) )
   
   labels.clusterNo <- ceiling( sort( table(labels) ) / 100 )
-  #TODO was passiert hier?!
   o <- order( sapply( strsplit(names(labels.clusterNo), "ac" ), function(x) as.numeric(x[2]) )  )
   labels.clusterNo <- labels.clusterNo[o]
   o <- order( sapply( strsplit(names(labels.clusterNo), " " ), function(x) as.numeric(substr(x[1],2,nchar(x[1]))) )  )
   labels.clusterNo <- labels.clusterNo[o]
-  
-  sum(labels.clusterNo)
   
   metacell.labels <- rep(NA,ncol(seuratObject)) 
   names(metacell.labels) <- colnames(seuratObject)
