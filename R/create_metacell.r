@@ -1,11 +1,11 @@
 pipeline.createMetacell <- function(env)
 {
   util.info("Creating meta cell")
-  patient.cluster <- table( env$seuratObject$seurat_clusters, env$seuratObject$orig.ident)
+  patient.cluster <- table( env$seuratObject$seurat_clusters, env$seuratObject$group.labels)
   patient.cluster <- patient.cluster / rowSums(patient.cluster)
   drop.cluster <- names( which( apply( patient.cluster, 1, function(x) sum( sort(x,decreasing=T)[1:2] ) ) > .8 ) )
 
-  labels <- paste0( "c", env$seuratObject$seurat_clusters, " ", env$seuratObject$orig.ident )
+  labels <- paste0( "c", env$seuratObject$seurat_clusters, " ", env$seuratObject$group.labels )
   names(labels) <- colnames(env$seuratObject)
   
   # remove meta-cells with less than 10 cells or where 80% of cells belong to one cluster
@@ -56,7 +56,7 @@ pipeline.createMetacell <- function(env)
   pb$kill()
   
   env$metacellData = metacell.data
-  env$metacellLabels = names(labels.clusterNo)
+  env$metacellLabels = labels.clusterNo
   
   env$seuratObject[["metacellLabelsLvl1"]] <- as.factor(env$seuratObject$metacellLabelsLvl1)
   env$seuratObject[["metacellLabelsLvl2"]] <- as.factor(env$seuratObject$metacellLabelsLvl2)
