@@ -45,7 +45,7 @@ pipeline.summarySheetSeurat <- function(env){
   seurat.markers <- FindAllMarkers( env$seuratObject, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 
   n_genes = 3
-  top_genes = seurat.markers %>% group_by(cluster) %>% top_n(n = n_genes, wt = avg_logFC)
+  top_genes = seurat.markers %>% group_by(cluster) %>% top_n(n_genes)
   n_cluster = length(levels(top_genes$cluster))
 
   plot_list<- list()

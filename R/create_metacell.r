@@ -1,15 +1,15 @@
-pipeline.createMetacell <- function(seuratObject)
+pipeline.createMetacell <- function(env)
 {
   util.info("Creating meta cell")
-  patient.cluster <- table( seuratObject$seurat_clusters, seuratObject$orig.ident)
+  patient.cluster <- table( env$seuratObject$seurat_clusters, env$seuratObject$orig.ident)
   patient.cluster <- patient.cluster / rowSums(patient.cluster)
   drop.cluster <- names( which( apply( patient.cluster, 1, function(x) sum( sort(x,decreasing=T)[1:2] ) ) > .8 ) )
 
-  labels <- paste0( "c", seuratObject$seurat_clusters, " ", seuratObject$orig.ident )
-  names(labels) <- colnames(seuratObject)
+  labels <- paste0( "c", env$seuratObject$seurat_clusters, " ", env$seuratObject$orig.ident )
+  names(labels) <- colnames(env$seuratObject)
   
   # remove meta-cells with less than 10 cells or where 80% of cells belong to one cluster
-  labels <- labels[ which(!seuratObject$seurat_clusters%in%drop.cluster) ]
+  labels <- labels[ which(!env$seuratObject$seurat_clusters%in%drop.cluster) ]
   labels <- labels[ which( labels %in% names( which( table(labels)>=10 ) ) ) ]
   
   sort( table(labels) )
@@ -20,17 +20,17 @@ pipeline.createMetacell <- function(seuratObject)
   o <- order( sapply( strsplit(names(labels.clusterNo), " " ), function(x) as.numeric(substr(x[1],2,nchar(x[1]))) )  )
   labels.clusterNo <- labels.clusterNo[o]
   
-  metacell.labels <- rep(NA,ncol(seuratObject)) 
-  names(metacell.labels) <- colnames(seuratObject)
+  metacell.labels <- rep(NA,ncol(env$seuratObject)) 
+  names(metacell.labels) <- colnames(env$seuratObject)
   metacell.labels[names(labels)] <- labels
   
-  seuratObject[["metacellLabelsLvl1"]] <- metacell.labels
-  seuratObject[["metacellLabelsLvl2"]] <- metacell.labels
+  env$seuratObject[["metacellLabelsLvl1"]] <- metacell.labels
+  env$seuratObject[["metacellLabelsLvl2"]] <- metacell.labels
   
-  seuratObject[["cellInMetacell"]] <- !is.na(metacell.labels)
-  sum(seuratObject$cellInMetacell)
+  env$seuratObject[["cellInMetacell"]] <- !is.na(metacell.labels)
+  sum(env$seuratObject$cellInMetacell)
   
-  metacell.data <- matrix(NA,nrow(seuratObject),0,dimnames=list(rownames(seuratObject),c()))
+  metacell.data <- matrix(NA,nrow(env$seuratObject),0,dimnames=list(rownames(env$seuratObject),c()))
   
   pb <-txtProgressBar(min = 0, max = length(labels.clusterNo),style=3)
   
@@ -38,7 +38,7 @@ pipeline.createMetacell <- function(seuratObject)
   for( x in names(labels.clusterNo) )
   {
     mc.cells <- names(which(metacell.labels==x))
-    expr <- data.matrix( seuratObject@assays$RNA@data[ , mc.cells ] )
+    expr <- data.matrix( env$seuratObject@assays$RNA@data[ , mc.cells ] )
     
     km <- kmeans(t(expr),centers=labels.clusterNo[x])
     
@@ -49,14 +49,17 @@ pipeline.createMetacell <- function(seuratObject)
     
     metacell.data <- cbind(metacell.data, expr)
     
-    seuratObject$metacellLabelsLvl2[mc.cells] <- paste0( seuratObject$metacellLabelsLvl1[mc.cells], " x", km$cluster )
+    env$seuratObject$metacellLabelsLvl2[mc.cells] <- paste0( env$seuratObject$metacellLabelsLvl1[mc.cells], " x", km$cluster )
     
     setTxtProgressBar( pb, pb$getVal()+1 )
   }
   pb$kill()
   
-  seuratObject[["metacellLabelsLvl1"]] <- as.factor(seuratObject$metacellLabelsLvl1)
-  seuratObject[["metacellLabelsLvl2"]] <- as.factor(seuratObject$metacellLabelsLvl2)
+  env$metacellData = metacell.data
+  env$metacellLabels = names(labels.clusterNo)
   
-  return(seuratObject)
+  env$seuratObject[["metacellLabelsLvl1"]] <- as.factor(env$seuratObject$metacellLabelsLvl1)
+  env$seuratObject[["metacellLabelsLvl2"]] <- as.factor(env$seuratObject$metacellLabelsLvl2)
+  
+  return(env)
 }

@@ -80,19 +80,34 @@ pipeline.prepareIndata <- function(env)
   if (env$preferences$preprocessing$sample.quantile.normalization)
   {
     #env$indata <- Quantile.Normalization(env$indata)
-    env$seuratObject@assays$RNA@data <- Quantile.Normalization(env$seuratObject@assays$RNA@data)
+    if (env$preferences$preprocessing$create.meta.cell) {
+      env$metacellData <- Quantile.Normalization(env$metacellData)
+    }
+    else {
+      env$seuratObject@assays$RNA@data <- Quantile.Normalization(env$seuratObject@assays$RNA@data)
+    }
   }
 
   #colnames(env$seuratObject) <- make.unique(colnames(env$seuratObject))
   names(env$group.labels) <- make.unique(names(env$group.labels))
   names(env$group.colors) <- make.unique(names(env$group.colors))
 
-  env$indata.gene.mean <- Matrix::rowMeans(env$seuratObject)
+  if (env$preferences$preprocessing$create.meta.cell) {
+    env$indata.gene.mean <- Matrix::rowMeans(env$metacellData)
+  }
+  else {
+    env$indata.gene.mean <- Matrix::rowMeans(env$seuratObject)
+  }
 
   if (env$preferences$preprocessing$feature.centralization)
   {
-    #env$indata <- env$indata - env$indata.gene.mean
-    env$seuratObject@assays$RNA@data = as(env$seuratObject@assays$RNA@data - env$indata.gene.mean, "dgCMatrix")
+    if (env$preferences$preprocessing$create.meta.cell) {
+      env$metacellData <- env$metacellData - env$indata.gene.mean
+    }
+    else {
+      #env$indata <- env$indata - env$indata.gene.mean
+      env$seuratObject@assays$RNA@data <- as(env$seuratObject@assays$RNA@data - env$indata.gene.mean, "dgCMatrix")
+    }
   }
   return(env)
 }
@@ -100,7 +115,12 @@ pipeline.prepareIndata <- function(env)
 
 pipeline.generateSOM <- function(env)
 {
-  env$som.result <- som.linear.init(env$seuratObject@assays$RNA@data,somSize=env$preferences$dim.1stLvlSom)
+  if (env$preferences$preprocessing$create.meta.cell) {
+    env$som.result <- som.linear.init(env$metacellData,somSize=env$preferences$dim.1stLvlSom)
+  }
+  else {
+    env$som.result <- som.linear.init(env$seuratObject@assays$RNA@data,somSize=env$preferences$dim.1stLvlSom)
+  }
   
   # Rotate/Flip First lvl SOMs
 
@@ -119,11 +139,18 @@ pipeline.generateSOM <- function(env)
     o <- matrix(c(1:(env$preferences$dim.1stLvlSom^2)), env$preferences$dim.1stLvlSom, env$preferences$dim.1stLvlSom, byrow=TRUE)
     env$som.result <- env$som.result[as.vector(o),]
   }
-
-  env$som.result <- som.training( env$seuratObject@assays$RNA@data, env$som.result, prolongationFactor = env$preferences$training.extension, verbose = TRUE )
-    
-  env$metadata <- env$som.result$weightMatrix
-  colnames(env$metadata) <- colnames(env$seuratObject)
+  
+  if (env$preferences$preprocessing$create.meta.cell) {
+    env$som.result <- som.training(env$metacellData, env$som.result, prolongationFactor = env$preferences$training.extension, verbose = TRUE )
+    env$metadata <- env$som.result$weightMatrix
+    colnames(env$metadata) <- colnames(env$metacellData)
+  }
+  else {
+    env$som.result <- som.training( env$seuratObject@assays$RNA@data, env$som.result, prolongationFactor = env$preferences$training.extension, verbose = TRUE )
+    env$metadata <- env$som.result$weightMatrix
+    colnames(env$metadata) <- colnames(env$seuratObject)
+  }
+   
 
   env$som.result$weightMatrix <- NULL
 
@@ -131,7 +158,12 @@ pipeline.generateSOM <- function(env)
   ## set up SOM dependent variables
   
   env$gene.info$coordinates <- apply( env$som.result$node.summary[env$som.result$feature.BMU,c("x","y")], 1, paste, collapse=" x " )
-  names(env$gene.info$coordinates) <- rownames(env$seuratObject)
+  if (env$preferences$preprocessing$create.meta.cell) {
+    names(env$gene.info$coordinates) <- rownames(env$metacellData)
+  }
+  else {
+    names(env$gene.info$coordinates) <- rownames(env$seuratObject)
+  }
   
   return(env)
 }

@@ -143,6 +143,22 @@ scrat.run <- function(env)
     util.info("Process to Seurat Object")
     env <- pipeline.seuratPreprocessing(env)
     pipeline.summarySheetSeurat(env)
+    
+    if (env$preferences$preprocessing$create.meta.cell) {
+      env$indata <- env$metacellData
+      env$group.labels <- env$metacellLabels
+      env$group.colors <- rep("", ncol(env$indata))
+
+      for (i in seq_along(unique(env$group.labels)))
+      {
+        env$group.colors[which(env$group.labels == unique(env$group.labels)[i])] <-
+          colorRampPalette(c("blue3", "blue", "green3", "gold", "red", "red3"))(length(unique(env$group.labels)))[i]
+      }
+      names(env$group.colors) <- names(env$group.labels)
+    }
+    else {
+      env$indata <- env$seuratObject
+    }
   }
   
   if(env$preferences$activated.modules$primary.analysis || env$preferences$activated.modules$geneset.analysis)
@@ -205,7 +221,7 @@ scrat.run <- function(env)
   
   if(env$preferences$activated.modules$reporting)
   {
-    if (exists("seuratObject", envir = env)){
+    if (exists("seuratObject", envir = env) && !env$preferences$preprocessing$create.meta.cell){
       if(ncol(env$seuratObject) < 1000)
       {
         util.info("Plotting Sample Portraits")
@@ -220,7 +236,7 @@ scrat.run <- function(env)
     }
     
     
-    if (exists("seuratObject", envir = env)){
+    if (exists("seuratObject", envir = env) && !env$preferences$preprocessing$create.meta.cell){
       if ( env$preferences$activated.modules$sample.similarity.analysis && ncol(env$seuratObject) > 2)
       {    
         util.info("Plotting Sample Similarity Analysis")

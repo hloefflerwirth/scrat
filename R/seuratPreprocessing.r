@@ -41,7 +41,7 @@ pipeline.seuratPreprocessing <- function(env)
   env$seuratObject <- FindClusters(env$seuratObject, resolution = 1)
   
   if (env$preferences$preprocessing$create.meta.cell) {
-    env$seuratObject <- pipeline.createMetacell(env$seuratObject)
+    env <- pipeline.createMetacell(env)
   }
   return(env)
 }
