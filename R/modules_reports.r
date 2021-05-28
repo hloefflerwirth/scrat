@@ -89,7 +89,7 @@ modules.report.sheets <- function(env, spot.list, main, path)
   
   par(mar=c(0,0,0,0))
   
-  image(1:ncol(env$seuratObject),
+  image(1:ncol(env$indata),
         1:nrow(spot.list$spotdata),
         sample.spot.expression.image,
         col=env$color.palette.heatmaps(1000),
@@ -98,9 +98,9 @@ modules.report.sheets <- function(env, spot.list, main, path)
   
   box()
   
-  if (ncol(env$seuratObject)<100)
+  if (ncol(env$indata)<100)
   {
-    axis(1, 1:ncol(env$seuratObject), labels=colnames(env$seuratObject), las=2, line=-0.5, tick=0, cex.axis=1.4)
+    axis(1, 1:ncol(env$indata), labels=colnames(env$indata), las=2, line=-0.5, tick=0, cex.axis=1.4)
   }
   
   plot(0, type="n", xlab="", ylab="", axes=FALSE, xlim=c(0,1),
@@ -113,7 +113,7 @@ modules.report.sheets <- function(env, spot.list, main, path)
   
   if (length(unique(env$group.labels)) > 1)
   {
-    image(cbind(1:ncol(env$seuratObject)), col = env$group.colors, axes = FALSE)
+    image(cbind(1:ncol(env$indata)), col = env$group.colors, axes = FALSE)
     box()
   } else
   {
@@ -176,7 +176,7 @@ modules.report.sheets <- function(env, spot.list, main, path)
         try({
           text(0.1, 0.51,
                paste("<r> genes =",
-                     round(mean(cor(t(env$seuratObject@assays$RNA@data[spot.list$spots[[m]]$genes,]))), 2)),
+                     round(mean(cor(t(env$indata[spot.list$spots[[m]]$genes,]))), 2)),
                adj=0)
         }, silent=TRUE)
       })
@@ -192,7 +192,7 @@ modules.report.sheets <- function(env, spot.list, main, path)
     text(0.1, 0.39,
          paste("# samples with spot =",
                sum(sample.with.spot,na.rm=TRUE), "(",
-               round(100 * sum(sample.with.spot,na.rm=TRUE) / ncol(env$seuratObject), 1), "%)"), adj=0)
+               round(100 * sum(sample.with.spot,na.rm=TRUE) / ncol(env$indata), 1), "%)"), adj=0)
     
     if (length(unique(env$group.labels)) > 1 && sum(sample.with.spot,na.rm=TRUE) > 0)
     {
@@ -250,9 +250,9 @@ modules.report.sheets <- function(env, spot.list, main, path)
     par(mar=c(8,3,1,1))
     
     barplot(spot.list$spotdata[m,], col=env$group.colors, main="",
-            names.arg=if (ncol(env$seuratObject)<100) colnames(env$seuratObject) else rep("",ncol(env$seuratObject)),
+            names.arg=if (ncol(env$indata)<100) colnames(env$indata) else rep("",ncol(env$indata)),
             las=2, cex.main=1, cex.lab=1, cex.axis=1, cex.names=0.8,
-            border=if (ncol(env$seuratObject) < 80) "black" else NA)
+            border=if (ncol(env$indata) < 80) "black" else NA)
     
     box()
     
@@ -261,12 +261,12 @@ modules.report.sheets <- function(env, spot.list, main, path)
       # Spot Genelist
       r.genes <- sapply(spot.list$spots[[m]]$genes, function(x)
       {
-        gene <- env$seuratObject@assays$RNA@data[x,]
+        gene <- env$indata[x,]
         return(suppressWarnings(cor(gene, spot.list$spotdata[m,])))
       })
       
-      e.max <- apply(env$seuratObject@assays$RNA@data[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, max, na.rm=TRUE)
-      e.min <- apply(env$seuratObject@assays$RNA@data[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, min, na.rm=TRUE)
+      e.max <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, max, na.rm=TRUE)
+      e.min <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, min, na.rm=TRUE)
       
       if (main %in% c("Underexpression Spots"))
       {

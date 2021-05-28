@@ -54,12 +54,12 @@ pipeline.pseudotimeReport <- function(env)
   V(stg)$label <- rep("",length(V(stg)))
   V(stg)$color <- colorRampPalette(c("white","blue3"))(length(V(stg)))[rank(env$pseudotime.trajectory)]
   
-  plot(stg, layout=layout.stg, vertex.size=ifelse(ncol(env$seuratObject)<2000,4,2), main="Correlation Spanning Tree")
+  plot(stg, layout=layout.stg, vertex.size=ifelse(ncol(env$indata)<2000,4,2), main="Correlation Spanning Tree")
   
   
   # pseudotime colored correlation k-NN graph
   
-  if( ncol(env$seuratObject) < 2000 )
+  if( ncol(env$indata) < 2000 )
   {
     adj.matrix <- matrix( 0, ncol(env$metadata), ncol(env$metadata), dimnames=list(colnames(env$metadata),colnames(env$metadata)) )
     
@@ -164,14 +164,14 @@ pipeline.pseudotimeReport <- function(env)
     
     ylim <- c(-0.1,1.1)
     par(mar=c(3,4,2,0),xpd=FALSE)
-    plot(env$pseudotime.trajectory[colnames(env$seuratObject)[o.groupwise]], col=env$group.colors[o.groupwise], pch=16, axes=FALSE, xlab="", ylab="t", ylim=ylim )
+    plot(env$pseudotime.trajectory[colnames(env$indata)[o.groupwise]], col=env$group.colors[o.groupwise], pch=16, axes=FALSE, xlab="", ylab="t", ylim=ylim )
       box()
       axis(2)
       lines(group.x.coods,group.y.coods,col="gray20")
       points(group.x.coods,group.y.coods,cex=2,pch=15,col=env$groupwise.group.colors)
       points(group.x.coods,group.y.coods,cex=2,pch=0,col="gray20")
-      points( 1:ncol(env$seuratObject), rep(ylim[1],ncol(env$seuratObject)), pch=15, col=env$group.colors[o.groupwise] )  
-      points( 1:ncol(env$seuratObject), rep(ylim[2],ncol(env$seuratObject)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$seuratObject))[rank(env$pseudotime.trajectory)] )  
+      points( 1:ncol(env$indata), rep(ylim[1],ncol(env$indata)), pch=15, col=env$group.colors[o.groupwise] )  
+      points( 1:ncol(env$indata), rep(ylim[2],ncol(env$indata)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$indata))[rank(env$pseudotime.trajectory)] )  
       mtext("groups",1)
       mtext("pseudotime",3)
       
@@ -179,12 +179,12 @@ pipeline.pseudotimeReport <- function(env)
     plot(env$pseudotime.trajectory[pseudotime.order], col=env$group.colors[pseudotime.order], pch=16, axes=FALSE, xlab="", ylab="t", ylim=ylim )
       box()
       axis(2)
-      points( 1:ncol(env$seuratObject), rep(ylim[1],ncol(env$seuratObject)), pch=15, col=env$group.colors[pseudotime.order] )  
-      points( 1:ncol(env$seuratObject), rep(ylim[2],ncol(env$seuratObject)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$seuratObject)) )  
+      points( 1:ncol(env$indata), rep(ylim[1],ncol(env$indata)), pch=15, col=env$group.colors[pseudotime.order] )  
+      points( 1:ncol(env$indata), rep(ylim[2],ncol(env$indata)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$indata)) )  
       mtext("groups",1)
       mtext("pseudotime",3)
       
-    if( ncol(env$seuratObject) < 2000 )
+    if( ncol(env$indata) < 2000 )
     {
       V(G.knn)$color <- env$group.colors
       par(mar=c(2,2,2,2))
@@ -196,9 +196,9 @@ pipeline.pseudotimeReport <- function(env)
   
   # pseudotime gene sheets  
   
-  if( ncol(env$seuratObject) < 2000 )
+  if( ncol(env$indata) < 2000 )
   {
-    DE.genes <- diff.test(env$seuratObject)
+    DE.genes <- diff.test(env$indata)
       
     n.genes <- 20
     trajectory.genes <- names(sort(env$DE.genes$p.values)[1:n.genes])
@@ -231,23 +231,23 @@ pipeline.pseudotimeReport <- function(env)
        
       o.groupwise <- order(match( env$group.labels, unique(env$group.labels) ))
       group.x.coods <- tapply( 1:length(env$group.labels), env$group.labels[o.groupwise], mean )[unique(env$group.labels)]
-      group.y.coods <- tapply( env$seuratObject[x,o.groupwise], env$group.labels[o.groupwise], mean )[unique(env$group.labels)]
+      group.y.coods <- tapply( env$indata[x,o.groupwise], env$group.labels[o.groupwise], mean )[unique(env$group.labels)]
       
-      ylim <- range(env$seuratObject[x,])
+      ylim <- range(env$indata[x,])
       ylim <- ylim + diff(ylim)*0.1*c(-1,1)
       
       par(mar=c(3,4,2,0),xpd=FALSE)
-      plot(env$seuratObject[x,o.groupwise], col=env$group.colors[o.groupwise], pch=16, axes=FALSE, xlab="", ylab=bquote(Delta~e), ylim=ylim )
+      plot(env$indata[x,o.groupwise], col=env$group.colors[o.groupwise], pch=16, axes=FALSE, xlab="", ylab=bquote(Delta~e), ylim=ylim )
         box()
         axis(2)
         abline(h=0,lty=2,col="gray80")
         lines(group.x.coods,group.y.coods,col="gray20")
         points(group.x.coods,group.y.coods,cex=2,pch=15,col=env$groupwise.group.colors)
         points(group.x.coods,group.y.coods,cex=2,pch=0,col="gray20")
-        points( 1:ncol(env$seuratObject)-0.5, rep(ylim[1],ncol(env$seuratObject)), pch=15, col=env$group.colors[o.groupwise] )  
-  			points( 1:ncol(env$seuratObject), rep(ylim[1],ncol(env$seuratObject)), pch=15, col=env$group.colors[o.groupwise] )  
-        points( 1:ncol(env$seuratObject)-0.5, rep(ylim[2],ncol(env$seuratObject)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$seuratObject))[rank(env$pseudotime.trajectory)] )  
-        points( 1:ncol(env$seuratObject), rep(ylim[2],ncol(env$seuratObject)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$seuratObject))[rank(env$pseudotime.trajectory)] )  
+        points( 1:ncol(env$indata)-0.5, rep(ylim[1],ncol(env$indata)), pch=15, col=env$group.colors[o.groupwise] )  
+  			points( 1:ncol(env$indata), rep(ylim[1],ncol(env$indata)), pch=15, col=env$group.colors[o.groupwise] )  
+        points( 1:ncol(env$indata)-0.5, rep(ylim[2],ncol(env$indata)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$indata))[rank(env$pseudotime.trajectory)] )  
+        points( 1:ncol(env$indata), rep(ylim[2],ncol(env$indata)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$indata))[rank(env$pseudotime.trajectory)] )  
         mtext("groups",1)
         mtext("pseudotime",3)
         
@@ -256,27 +256,27 @@ pipeline.pseudotimeReport <- function(env)
         box()
         axis(2)
         abline(h=0,lty=2,col="gray80")
-        lines( 1:ncol(env$seuratObject), Get.Running.Average(env$seuratObject[x,pseudotime.order],min(5,ncol(env$seuratObject))), lwd=3, col="gray20" )
-        points( 1:ncol(env$seuratObject)-0.5, rep(ylim[1],ncol(env$seuratObject)), pch=15, col=env$group.colors[pseudotime.order] )  
-  			points( 1:ncol(env$seuratObject), rep(ylim[1],ncol(env$seuratObject)), pch=15, col=env$group.colors[pseudotime.order] )  
-        points( 1:ncol(env$seuratObject)-0.5, rep(ylim[2],ncol(env$seuratObject)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$seuratObject)) )  
-  			points( 1:ncol(env$seuratObject), rep(ylim[1],ncol(env$seuratObject)), pch=15, col=env$group.colors[pseudotime.order] )  
+        lines( 1:ncol(env$indata), Get.Running.Average(env$indata[x,pseudotime.order],min(5,ncol(env$indata))), lwd=3, col="gray20" )
+        points( 1:ncol(env$indata)-0.5, rep(ylim[1],ncol(env$indata)), pch=15, col=env$group.colors[pseudotime.order] )  
+  			points( 1:ncol(env$indata), rep(ylim[1],ncol(env$indata)), pch=15, col=env$group.colors[pseudotime.order] )  
+        points( 1:ncol(env$indata)-0.5, rep(ylim[2],ncol(env$indata)), pch=15, col=colorRampPalette(c("white","blue3"))(ncol(env$indata)) )  
+  			points( 1:ncol(env$indata), rep(ylim[1],ncol(env$indata)), pch=15, col=env$group.colors[pseudotime.order] )  
         mtext("groups",1)
         mtext("pseudotime",3)
           
   
         
-      if( ncol(env$seuratObject) < 2000 )
+      if( ncol(env$indata) < 2000 )
       {
           
-        V(G.knn)$color <- env$color.palette.heatmaps(1000)[1+999*(env$seuratObject@assays$RNA@data[x,]-min(env$seuratObject@assays$RNA@data[x,]))/(max@assays$RNA@data(env$seuratObject[x,])-min(env$seuratObject@assays$RNA@data[x,]))]
+        V(G.knn)$color <- env$color.palette.heatmaps(1000)[1+999*(env$indata[x,]-min(env$indata[x,]))/(max(env$indata[x,])-min(env$indata[x,]))]
         
         par(mar=c(2,2,2,2))
         plot(G.knn, layout=layout.knn, vertex.size=5 )    
           
         par(mar=c(3,25,0,4))
         image( cbind(1:1000), col=env$color.palette.heatmaps(1000), axes=FALSE )
-          axis( 1, c(0,1), round(range(env$seuratObject@assays$RNA@data[x,]),2) )
+          axis( 1, c(0,1), round(range(env$indata[x,]),2) )
           axis( 1, 0.5, bquote( Delta~e ), tick=FALSE )
     
       } else frame()      
@@ -300,11 +300,11 @@ pipeline.pseudotimeReport <- function(env)
   env$csv.function(out, file=filename, row.names=FALSE)
 
   
-  if( ncol(env$seuratObject) < 2000 )
+  if( ncol(env$indata) < 2000 )
   {
     o <- order(env$DE.genes$p.values)
     out <- cbind(Rank=1:length(o),
-                 ID=rownames(env$seuratObject)[o],
+                 ID=rownames(env$indata)[o],
                  Symbol=env$gene.info$names[o],
                  p.value=paste(format.pval(env$DE.genes$p.values[o]),"     ."),
                  fdr=paste(format.pval(env$DE.genes$q.values[o]),"     ."),

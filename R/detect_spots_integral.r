@@ -736,8 +736,6 @@ pipeline.detectSpotsIntegral <- function(env)
     env$preferences$standard.spot.modules <- "kmeans"
     util.warn("Invalid value of \"standard.spot.modules\": Too few spots detected. Using \"kmeans\"")
   }
-  
-  rm(env$indata)
 
  return(env)   
 }

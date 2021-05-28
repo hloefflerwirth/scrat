@@ -26,7 +26,7 @@ pipeline.sampleExpressionPortraits <- function(env)
       image(matrix(env$metadata[,j], env$preferences$dim.1stLvlSom, env$preferences$dim.1stLvlSom),
             axes=FALSE, col=env$color.palette.portraits(1000))
 
-      title(paste(j,":",colnames(env$seuratObject)[j]), line=1, cex.main=0.8)
+      title(paste(j,":",colnames(env$indata)[j]), line=1, cex.main=0.8)
 
       if (length(unique(env$group.labels)) > 1)
       {

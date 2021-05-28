@@ -12,16 +12,16 @@ modules.CSV.sheets <- function(env, spot.list, main, path)
     ## CSV Table
     r.genes <- sapply(spot.list$spots[[m]]$genes, function(x)
     {
-      gene <- env$seuratObject@assays$RNA@data[x,]
+      gene <- env$indata[x,]
       return(suppressWarnings(cor(gene, spot.list$spotdata[m,])))
     })
 
-    r.t <- r.genes / sqrt((1-r.genes^2) / (ncol(env$seuratObject)-2))
-    r.p <- 1 - pt(r.t, ncol(env$seuratObject)-2)
+    r.t <- r.genes / sqrt((1-r.genes^2) / (ncol(env$indata)-2))
+    r.p <- 1 - pt(r.t, ncol(env$indata)-2)
 
 
-    e.max <- apply(env$seuratObject@assays$RNA@data[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, max)
-    e.min <- apply(env$seuratObject@assays$RNA@data[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, min)
+    e.max <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, max)
+    e.min <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, min)
 
     if (main %in% c("Underexpression Spots"))
     {
@@ -37,9 +37,9 @@ modules.CSV.sheets <- function(env, spot.list, main, path)
 
     out <- cbind(out,
                  "mean expression"=env$indata.gene.mean[o],
-                 "SD"=apply(env$seuratObject@assays$RNA@data[o, ,drop=FALSE], 1, sd),
-                 "max delta e"=apply(env$seuratObject@assays$RNA@data[o, ,drop=FALSE], 1, max),
-                 "min delta e"=apply(env$seuratObject@assays$RNA@data[o, ,drop=FALSE], 1, min),
+                 "SD"=apply(env$indata[o, ,drop=FALSE], 1, sd),
+                 "max delta e"=apply(env$indata[o, ,drop=FALSE], 1, max),
+                 "min delta e"=apply(env$indata[o, ,drop=FALSE], 1, min),
                  "correlation"=r.genes[o],
                  "->t.score"=r.t[o],
                  "->p.value"=paste(r.p[o],"     ."),

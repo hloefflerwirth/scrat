@@ -146,15 +146,11 @@ scrat.run <- function(env)
     
     if (env$preferences$preprocessing$create.meta.cell) {
       env$indata <- env$metacellData
-      env$group.labels <- env$metacellLabels
-      env$group.colors <- rep("", ncol(env$indata))
-
-      for (i in seq_along(unique(env$group.labels)))
-      {
-        env$group.colors[which(env$group.labels == unique(env$group.labels)[i])] <-
-          colorRampPalette(c("blue3", "blue", "green3", "gold", "red", "red3"))(length(unique(env$group.labels)))[i]
-      }
-      names(env$group.colors) <- names(env$group.labels)
+      env$group.labels <- rep("auto",ncol(env$metacellData))
+      names(env$group.labels) <- colnames(env$metacellData)
+      
+      env$group.colors <- rep("#000000", ncol(env$metacellData))
+      names(env$group.colors) <- colnames(env$metacellData)
     }
     else {
       env$indata <- env$seuratObject

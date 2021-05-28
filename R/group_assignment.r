@@ -22,7 +22,7 @@ pipeline.groupAssignment <- function(env)
       
       env$group.labels <- apply( sample.pat.distances[pat.labels.sorted[1:length(pat.labels.sorted)],,drop=FALSE], 2, function(x) names(x)[which.min(x)] )
       env$group.labels <- paste( env$group.labels, "*" )
-      names(env$group.labels) <- colnames(env$seuratObject)
+      names(env$group.labels) <- colnames(env$indata)
       
     } else
     {
@@ -57,14 +57,14 @@ pipeline.groupAssignment <- function(env)
         sum( n.k+m*x <= y )
       })
       
-      opt.cluster.number <- max( min( (which.max(k.higher.sse)+1) + env$preferences$adjust.autogroup.number, ncol(env$seuratObject) ), 1 )
+      opt.cluster.number <- max( min( (which.max(k.higher.sse)+1) + env$preferences$adjust.autogroup.number, ncol(env$indata) ), 1 )
       n.opt <- y[as.character(which.max(k.higher.sse)+1)] - m * x[which.max(k.higher.sse)]
   
       # assign new groups
       
       env$group.labels <- apply( sample.pat.distances[pat.labels.sorted[1:opt.cluster.number],,drop=FALSE], 2, function(x) names(x)[which.min(x)] )
       env$group.labels <- paste( env$group.labels, "*" )
-      names(env$group.labels) <- colnames(env$seuratObject)
+      names(env$group.labels) <- colnames(env$indata)
       
       
       # plot SSE curve
@@ -100,7 +100,7 @@ pipeline.groupAssignment <- function(env)
    
     env$pat.labels <- env$pat.labels[o]
     env$group.labels <- env$group.labels[o]
-    env$group.colors <- rep("", ncol(env$seuratObject))
+    env$group.colors <- rep("", ncol(env$indata))
     for (i in seq_along(unique(env$group.labels)))
     {
       env$group.colors[which(env$group.labels == unique(env$group.labels)[i])] <-
@@ -120,7 +120,7 @@ pipeline.groupAssignment <- function(env)
     env$t.m <- env$t.m[,o]
     env$p.m <- env$p.m[,o]
     
-    env$seuratObject <- env$seuratObject[,o]
+    env$indata <- env$indata[,o]
     env$metadata <- env$metadata[,o]
     env$indata.sample.mean <- env$indata.sample.mean[o]
 
@@ -133,7 +133,7 @@ pipeline.groupAssignment <- function(env)
   
   if (length(unique(env$group.labels)) < 2)
   {
-    env$group.silhouette.coef <- rep(100, ncol(env$seuratObject))
+    env$group.silhouette.coef <- rep(100, ncol(env$indata))
     return()
   }
 
