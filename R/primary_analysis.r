@@ -2,6 +2,13 @@ pipeline.cellcycleProcessing <- function(env)
 {
   util.info("Classification of cell cycle phase")   
   
+  if (!biomart.available(env))
+  {
+    util.warn("Requested biomaRt host seems to be down.")
+    util.warn("Disabling classification of cell cycle phase.")
+    return(env)
+  }
+  
   if( any(row.names(env$seuratObject) %in% Seurat::cc.genes.updated.2019$g2m.genes) || any(row.names(env$seuratObject) %in% Seurat::cc.genes.updated.2019$s.genes) ){
     marker <- list()
     marker$S <- Seurat::cc.genes.updated.2019$s.genes
