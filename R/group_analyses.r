@@ -39,13 +39,27 @@ pipeline.groupAnalysis <- function(env)
     samples.indata <- which(env$group.labels==unique(env$group.labels)[gr])
     
     n <- length(samples.indata)
-    local.env$t.g.m[,gr] <- sqrt(n) * apply(env$indata[,samples.indata,drop=FALSE],1,function(x)
+    if(typeof(env$indata)[1] == "S4")
     {
-      sd.estimate = if( n>1 ) sd(x) else 1
-      if( sd.estimate == 0 ) sd.estimate = 1
+      local.env$t.g.m[,gr] <- sqrt(n) * apply(env$indata@assays$RNA@counts[,samples.indata,drop=FALSE],1,function(x)
+      {
+        sd.estimate = if( n>1 ) sd(x) else 1
+        if( sd.estimate == 0 ) sd.estimate = 1
         
-      return( mean(x) / sd.estimate )
-    } )
+        return( mean(x) / sd.estimate )
+      })
+    }
+    else 
+    {
+      local.env$t.g.m[,gr] <- sqrt(n) * apply(env$indata[,samples.indata,drop=FALSE],1,function(x)
+      {
+        sd.estimate = if( n>1 ) sd(x) else 1
+        if( sd.estimate == 0 ) sd.estimate = 1
+        
+        return( mean(x) / sd.estimate )
+      })
+    }
+    
 #    t.g.m[which(is.nan(t.g.m[,gr])|is.infinite(t.g.m[,gr])),gr] <- 0
     local.env$p.g.m[,gr] <- 2 - 2*pt( abs(local.env$t.g.m[,gr]), max(n-1,1) )
 
@@ -71,8 +85,14 @@ pipeline.groupAnalysis <- function(env)
       local.env$n.0.m[gr] <- 0.5
       local.env$perc.DE.m[gr] <- 0.5
     }
-    
+    if(typeof(env$indata)[1] == "S4")
+    {
+      delta.e.g.m <- apply(env$indata@assays$RNA@counts[,samples.indata,drop=FALSE],1,mean)
+    }
+    else 
+    {
     delta.e.g.m <- apply(env$indata[,samples.indata,drop=FALSE],1,mean)
+    }
 
     local.env$w.g.m <- (delta.e.g.m - min(delta.e.g.m)) / (max(delta.e.g.m) - min(delta.e.g.m))
     local.env$WAD.g.m[,gr] <- local.env$w.g.m * delta.e.g.m
@@ -84,9 +104,20 @@ pipeline.groupAnalysis <- function(env)
     
   local.env$metadata <- do.call(cbind, by(t(env$metadata), env$group.labels, colMeans)[unique(env$group.labels)])
 
-  local.env$indata <- do.call(cbind, by(Matrix::t(env$indata+env$indata.gene.mean),
-                              env$group.labels,
-                             colMeans)[unique(env$group.labels)])
+  
+  if(typeof(env$indata)[1] == "S4")
+  {
+    local.env$indata <- do.call(cbind, by(Matrix::t(env$indata@assays$RNA@counts+env$indata.gene.mean),
+                                          env$group.labels,
+                                          colMeans)[unique(env$group.labels)])
+  }
+  else 
+  {
+    local.env$indata <- do.call(cbind, by(Matrix::t(env$indata+env$indata.gene.mean),
+                                          env$group.labels,
+                                          colMeans)[unique(env$group.labels)])
+  }
+  
 
   local.env$indata.gene.mean <- rowMeans(local.env$indata)
 

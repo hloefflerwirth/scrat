@@ -244,7 +244,14 @@ pipeline.detectSpotsIntegral <- function(env)
     {
       if (length(x$genes > 0))
       {
-        Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        if(typeof(env$indata)[1] == "S4")
+        {
+          Matrix::colMeans(env$indata@assays$RNA@counts[x$genes,,drop=FALSE],na.rm=TRUE)
+        }
+        else 
+        {
+          Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        }
       } else
       {
         rep(0, ncol(env$indata))
@@ -302,7 +309,14 @@ pipeline.detectSpotsIntegral <- function(env)
     {
       if (length(x$genes > 0))
       {
-        Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        if(typeof(env$indata)[1] == "S4")
+        {
+          Matrix::colMeans(env$indata@assays$RNA@counts[x$genes,,drop=FALSE],na.rm=TRUE)
+        }
+        else 
+        {
+          Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        }
       } else
       {
         rep(0, ncol(env$indata))
@@ -567,7 +581,14 @@ pipeline.detectSpotsIntegral <- function(env)
       {
         if (length(x$genes > 0))
         {
-          Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+          if(typeof(env$indata)[1] == "S4")
+          {
+            Matrix::colMeans(env$indata@assays$RNA@counts[x$genes,,drop=FALSE],na.rm=TRUE)
+          }
+          else 
+          {
+            Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+          }
         } else
         {
           rep(0, ncol(env$indata))
@@ -676,7 +697,14 @@ pipeline.detectSpotsIntegral <- function(env)
     {
       if (length(x$genes > 0))
       {
-        Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        if(typeof(env$indata)[1] == "S4")
+        {
+          Matrix::colMeans(env$indata@assays$RNA@counts[x$genes,,drop=FALSE],na.rm=TRUE)
+        }
+        else 
+        {
+          Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        }
       } else
       {
         rep(0, ncol(env$indata))
@@ -721,7 +749,14 @@ pipeline.detectSpotsIntegral <- function(env)
     {
       if (length(x$genes > 0))
       {
-        Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        if(typeof(env$indata)[1] == "S4")
+          {
+            Matrix::colMeans(env$indata@assays$RNA@counts[x$genes,,drop=FALSE],na.rm=TRUE)
+          }
+        else 
+        {
+          Matrix::colMeans(env$indata[x$genes,,drop=FALSE],na.rm=TRUE)
+        }
       } else
       {
         rep(0, ncol(env$indata))

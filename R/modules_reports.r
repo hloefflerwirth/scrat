@@ -261,12 +261,27 @@ modules.report.sheets <- function(env, spot.list, main, path)
       # Spot Genelist
       r.genes <- sapply(spot.list$spots[[m]]$genes, function(x)
       {
-        gene <- env$indata[x,]
+        if(typeof(env$indata)[1] == "S4")
+        {
+          gene <- env$indata@assays$RNA@counts[x,]
+        }
+        else 
+        {
+          gene <- env$indata[x,]
+        }
         return(suppressWarnings(cor(gene, spot.list$spotdata[m,])))
       })
       
-      e.max <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, max, na.rm=TRUE)
-      e.min <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, min, na.rm=TRUE)
+      if(typeof(env$indata)[1] == "S4")
+      {
+        e.max <- apply(env$indata@assays$RNA@counts[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, max, na.rm=TRUE)
+        e.min <- apply(env$indata@assays$RNA@counts[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, min, na.rm=TRUE)
+      }
+      else 
+      {
+        e.max <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, max, na.rm=TRUE)
+        e.min <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, min, na.rm=TRUE)
+      }
       
       if (main %in% c("Underexpression Spots"))
       {
