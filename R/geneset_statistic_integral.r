@@ -2,9 +2,9 @@ pipeline.genesetStatisticIntegral <- function(env)
 {
   spot.fisher.p <- function(spot)
   {
-    spot$Fisher.p <- GeneSet.Fisher(unique(na.omit(env$gene.info$ids[env$spot$genes])),
-                                    env$unique.protein.ids, env$gs.def.list, sort=TRUE)
-
+    spot$Fisher.p <- GeneSet.Fisher(unique(env$gene.info$ensembl.mapping$ensembl_gene_id[ which(env$gene.info$ensembl.mapping[,1]%in%spot$genes) ]),
+                                    unique(env$gene.info$ensembl.mapping$ensembl_gene_id), env$gs.def.list, sort=TRUE)
+    
     return(spot)
   }
 

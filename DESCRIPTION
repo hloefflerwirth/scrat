@@ -1,11 +1,11 @@
 Package: scrat
 Title: Single Cell - R Analysis Toolbox
-Version: 2.0.2
+Version: 2.1.0
 Description: This package translates microarray expression data into metadata of reduced dimension. It provides various sample-centered and group-centered visualizations, sample similarity analyses and functional enrichment analyses. The underlying SOM algorithm combines feature clustering, multidimensional scaling and dimension reduction, along with strong visualization capabilities. It enables extraction and description of functional expression modules inherent in the data.
-Depends: R (>= 3.0), igraph (>= 1.0.0), BiocGenerics (>= 0.27.1)
-Imports: biomaRt, VGAM, Seurat, ape, fastICA, scatterplot3d, tsne, pixmap, igraph, fdrtool, scater, SingleCellExperiment, BiocGenerics, scran, limma, RcppParallel, Rcpp, grid, gridExtra, dplyr,
+Depends: R (>= 3.0), igraph (>= 1.0.0), Seurat (>= 4.0.0)
+Imports: biomaRt, VGAM, ape, fastICA, scatterplot3d, tsne, pixmap, igraph, fdrtool, RcppParallel, Rcpp
 LinkingTo: RcppParallel, Rcpp
 License: GPL (>=2)
-Author: Henry Loeffler-Wirth <wirth@izbi.uni-leipzig.de>, Lena Richter, and Gray Camp
+Author: Henry Loeffler-Wirth <wirth@izbi.uni-leipzig.de>, and Lena Richter
 Maintainer: Henry Loeffler-Wirth <wirth@izbi.uni-leipzig.de>
 biocViews: GeneExpression, DifferentialExpression, GeneSetEnrichment, DataRepresentation, Visualization

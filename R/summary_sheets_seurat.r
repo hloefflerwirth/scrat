@@ -1,63 +1,132 @@
-pipeline.summarySheetSeurat <- function(env){
+pipeline.summarySheetSeurat <- function(env)
+{
+  ## Cell cycle phases  
   
-  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Clustering.pdf")
-  util.info("Writing:", filename)
-  pdf(filename, 21/2.54, 29.7/2.54, useDingbats=FALSE)
+  util.info("Writing cell cycle phase reports.")
   
-  # Gennamen:
-  #env$seuratObject@assays$RNA@var.features
-  # numeric metadata
-  metadata_numeric =  env$seuratObject@meta.data[, unlist(lapply(env$seuratObject@meta.data, is.numeric))]
-  metadata_numeric_names =  colnames(metadata_numeric)
-  # factor metadata
-  #metadata_factor = env$seuratObject@meta.data[, unlist(lapply(env$seuratObject@meta.data, is.factor))]
-  #metadata_factor_names = colnames(metadata_factor)
-  metadata_factor_names = c("group.labels", "orig.ident", "seurat_clusters")
-  metadata_factor = env$seuratObject@meta.data[, metadata_factor_names]
-  # get number of levels per factor
-  n_levels = mapply(metadata_factor, FUN = function(X){length(levels(X))})
+  dir.create( file.path(paste(env$files.name, "- Results"), "Data Overview"), showWarnings=FALSE)
+  
+  pt.cex <- ifelse(ncol(env$seuratObject)<10000,2,1.2)
+  
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Cell cycle phase 1.png")
+  png(filename, 1500, 1000)
+  
+  plot(env$seuratObject$S.Score, env$seuratObject$G2M.Score, xlab="S score", ylab="G2/M score", pch=16, col=env$seuratObject$group.colors, las=1, main="Scores for S and G2/M phases", xlim=c(-1,1), ylim=c(-1,1), cex=pt.cex )
+  lines(x=c(-1,0),y=c(0,0),lty=2)
+  lines(x=c(0,0),y=c(-1,0),lty=2)
+  lines(x=c(0,1),y=c(0,1),lty=2)
+  text(-0.5,0.5,"G2/M",col=rgb(0,0,0,alpha=0.3), cex=1.5)
+  text(-0.5,-0.5,"G1",col=rgb(0,0,0,alpha=0.3), cex=1.5)
+  text(0.6,0,"S",col=rgb(0,0,0,alpha=0.3), cex=1.5)
+  legend("bottomright", as.character(unique(env$seuratObject$group.labels)), cex=0.5, text.col=unique(env$seuratObject$group.colors), bg="white")
+  
+  dev.off()
+  
+  
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Cell cycle phase 2.png")
+  png(filename, 1500, 1000)
+  
+  par(mfrow=c(1,2))
+  
+  par(mar=c(6,5,4,10))
+  barplot(table(env$seuratObject$Phase), xlab="cell cycle phase", ylab="cells")
+  
+  tab <- t(table(env$seuratObject$Phase, env$seuratObject$orig.ident))
+  tab <- t(apply(tab,1,function(x)x/sum(x)))
+  o <- hclust(dist(tab))
+  
+  par(mar=c(6,5,4,1))
+  image( 1:3, seq(nrow(tab)), z=t(tab[o$order,]),col=env$color.palette.heatmaps(1000),zlim=c(0,1),
+         xlab="cell cycle phase", ylab="", axes=F)
+  axis(2,seq(nrow(tab)), rownames(tab), tick=F, las=2, cex.axis=.8)
+  axis(1,seq(ncol(tab)), colnames(tab), tick=F, las=1, cex.axis=1)
 
-  # Plot Metadata with more than one level
-  plot_list<- list()
-  plot_list[[1]] <- DimPlot(env$seuratObject, reduction = "tsne", group.by = c(metadata_factor_names[(n_levels>1)]), combine = F)
-  plot_list[[2]] <- DimPlot(env$seuratObject, reduction = "umap", group.by = c(metadata_factor_names[(n_levels>1)]),  combine = F)
+  dev.off()
   
-  grid.arrange(grobs = unlist(plot_list, recursive=FALSE), ncol=2)
   
-  if(env$preferences$preprocessing$create.meta.cell){
-    metadata_factor_names = c("metacellLabelsLvl1", "metacellLabelsLvl2", "cellInMetacell")
-    metadata_factor = env$seuratObject@meta.data[, metadata_factor_names]
-    # get number of levels per factor
-    n_levels = mapply(metadata_factor, FUN = function(X){length(levels(X))})
-    
-    # Plot Metadata with more than one level
-    plot_list<- list()
-    plot_list[[1]] <- DimPlot(env$seuratObject, reduction = "tsne", group.by = c(metadata_factor_names[(n_levels>1)]), combine = F)
+  
+  
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Sample IDs - tSNE.png")
+  png(filename, 1500, 1000)
 
-    grid.arrange(grobs = unlist(plot_list, recursive=FALSE), ncol=1)
-  }
+  d <- DimPlot(env$seuratObject, reduction = "tsne", group.by = "orig.ident", combine = TRUE, pt.size=pt.cex)
+  print(d)
   
-  # plot of numerical meta data
-  plot <- suppressWarnings(FeaturePlot(env$seuratObject, features = c(metadata_numeric_names), reduction = env$preferences$dim.reduction, ncol = 1))
-  print(plot)
+  dev.off()
+  
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Sample IDs - UMAP.png")
+  png(filename, 1500, 1000)
+  
+  d <- DimPlot(env$seuratObject, reduction = "umap", group.by = "orig.ident", combine = TRUE, pt.size=pt.cex)
+  print(d)
+  
+  dev.off()
+  
+  
+  
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Seurat clusters - tSNE.png")
+  png(filename, 1500, 1000)
+  
+  d <- DimPlot(env$seuratObject, reduction = "tsne", group.by = "seurat_clusters", combine = TRUE, pt.size=pt.cex)
+  print(d)
+  
+  dev.off()
+
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Seurat clusters - UMAP.png")
+  png(filename, 1500, 1000)
+  
+  d <- DimPlot(env$seuratObject, reduction = "umap", group.by = "seurat_clusters", combine = TRUE, pt.size=pt.cex)
+  print(d)
+  
+  dev.off()
+  
+  
+  
+  
   
   # find markers for every cluster compared to all remaining cells, report only the positive ones
   seurat.markers <- FindAllMarkers( env$seuratObject, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
 
-  n_genes = 3
-  top_genes = seurat.markers %>% group_by(cluster) %>% top_n(n_genes)
-  n_cluster = length(levels(top_genes$cluster))
+  # seurat.markers.filter <- subset(seurat.markers,p_val_adj < .01)
+  
+  n.genes <- 5
+  
+  seurat.markers.filter <- by( seurat.markers, seurat.markers$cluster, function(x)
+    x <- x[order(x$p_val_adj)[1:n.genes],] )
+  
+  seurat.markers.filter <- do.call( c,lapply( seurat.markers.filter, function(x) x$gene ) )
+  
+  d <- FetchData(env$seuratObject, seurat.markers.filter, slot = "data")
+  seurat_clusters <- as.numeric( as.vector(env$seuratObject$seurat_clusters) )
 
-  plot_list<- list()
-  #layout(matrix(c(1:(n_genes*n_cluster)), n_cluster, n_genes, byrow =TRUE))
-  for(i in 0:(length(unique(top_genes$cluster))-1)){
-    feature = c(unlist(top_genes["gene"][((i)*n_genes + 1):((i+1)*n_genes),]))
-    plot_list[[(i+1)]] <- FeaturePlot(env$seuratObject, features = feature, reduction = env$preferences$dim.reduction, combine = F, ncol = n_genes)
-  }
-  #label <- textGrob(c("", "line1", "line2"))
-  #plots <- arrangeGrob(unlist(plot_list, recursive=FALSE), ncol=3)
-  #grid.arrange(grobs = unlist(list(label, plots)),top = "Top three positive marker genes per cluster")
-  grid.arrange(grobs = unlist(plot_list, recursive=FALSE), ncol=3,top = "Top three positive marker genes per cluster", left = "Seurat Clusters")
+  
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Seurat clusters - markers.png")
+  png(filename, 1500, 1000)
+  
+  layout( matrix(c(0,2,3,1),2), widths=c(1,12), heights=c(1,12) )
+  
+  par(mar=c(5,6,1,2))
+  image( 1:nrow(d), 1:ncol(d), data.matrix(d)[order(seurat_clusters),], 
+         axes=F, col=env$color.palette.heatmaps(1000), xlab="cells", ylab="" )
+  
+  box()
+  x.coord <- sapply( sort(unique(seurat_clusters)), function(x)
+    mean( which( sort(seurat_clusters) == x ) )
+  )
+  axis(1,x.coord,sort(unique(seurat_clusters)), tick=FALSE )
+   
+  # y.coord <- seq(3,ncol(d),by=n.genes) 
+  # axis(2,y.coord,sort(unique(seurat_clusters)),las=2)
+  axis(2,1:ncol(d), colnames(d), las=2, tick=FALSE )
+  
+  cluster.cols <- color.palette.discrete( max(seurat_clusters)+1 )
+  
+  par(mar=c(5,1,1,0))
+  image(rbind(1:nrow(d)), col=rep(cluster.cols,each=n.genes), axes=FALSE)
+  
+  par(mar=c(0,6,1,2))
+  image(cbind(1:ncol(d)), col=cluster.cols[ match( sort(seurat_clusters), sort(unique(seurat_clusters)) ) ], axes=FALSE)
+  
   dev.off()
 }
 

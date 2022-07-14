@@ -1,3 +1,5 @@
+2.1.0:
++ pre-processing workflow of Seurat adopted, update to Seurat v4.
 2.0.2: 
 + bugfix for missing geneset data object
 2.0.1:

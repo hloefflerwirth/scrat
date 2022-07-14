@@ -59,6 +59,74 @@ pipeline.summarySheetsGroups <- function(env)
 
   }
 
+  
+  
+  filename <- file.path(paste(env$files.name, "- Results"),"Summary Sheets - Groups","Expression Portraits Groups.pdf")
+  
+  util.info("Writing:", filename)
+  pdf(filename, 29.7/2.54, 21/2.54, useDingbats=FALSE)
+  
+  par(mfrow=c(5,6))
+  par(mar=c(0.5,2.5,4.5,1.5))
+  
+  for (i in seq_along(unique(env$group.labels)))
+  {
+    plot(0, type="n", axes=FALSE, xlab="", ylab="", xlim=c(0,1))
+    
+    mtext(unique(env$group.labels)[i], side=3, line = 2, cex=1.5, at=-0.04, font=3,
+          adj=0, col=env$groupwise.group.colors[i])
+    
+    par(new=TRUE)
+    
+    image(matrix(group.metadata[,i], env$preferences$dim.1stLvlSom, env$preferences$dim.1stLvlSom),
+          axes=FALSE, col = env$color.palette.portraits(1000))
+    
+    title(main="logFC", cex.main=1.5, line=0.5)
+    box()
+    
+    image(matrix(bleached.group.metadata[,i],
+                 env$preferences$dim.1stLvlSom,
+                 env$preferences$dim.1stLvlSom),
+          axes=FALSE, col = env$color.palette.portraits(1000), zlim=range(bleached.group.metadata))
+    
+    title(main="group specific logFC", cex.main=1.3, line=0.5)
+    box()
+    
+    image(matrix(WAD.group.metadata[,i],
+                 env$preferences$dim.1stLvlSom,
+                 env$preferences$dim.1stLvlSom),
+          axes=FALSE, col = env$color.palette.portraits(1000))
+    
+    title(main="WAD", cex.main=1.5, line=0.5)
+    box()
+    
+    image(matrix(bleached.WAD.group.metadata[,i],
+                 env$preferences$dim.1stLvlSom,
+                 env$preferences$dim.1stLvlSom),
+          axes=FALSE, col = env$color.palette.portraits(1000), zlim=range(bleached.WAD.group.metadata))
+    
+    title(main="group specific WAD", cex.main=1.3, line=0.5)
+    box()
+    
+    image(matrix(loglog.group.metadata[,i],
+                 env$preferences$dim.1stLvlSom,
+                 env$preferences$dim.1stLvlSom),
+          axes=FALSE, col = env$color.palette.portraits(1000))
+    title(main="loglogFC", cex.main=1.5, line=0.5)
+    box()
+    
+    image(matrix(bleached.loglog.group.metadata[,i],
+                 env$preferences$dim.1stLvlSom,
+                 env$preferences$dim.1stLvlSom),
+          axes=FALSE, col = env$color.palette.portraits(1000), zlim=range(bleached.loglog.group.metadata))
+    
+    title(main="group specific loglogFC", cex.main=1.3, line=0.5)
+    box()
+  }
+  
+  dev.off()
+  
+  
 
   ###### Group stability scores
   filename <- file.path(paste(env$files.name, "- Results"),
@@ -70,9 +138,8 @@ pipeline.summarySheetsGroups <- function(env)
 
 
   S <- tapply( env$group.silhouette.coef, env$group.labels, sort, decreasing=TRUE, simplify=FALSE )[unique(env$group.labels)]
-  names(S) <- NA
-  S <- unlist(S)
-  names(S) <- sub( paste("^NA.",sep=""), "", names(S) )
+  S <- do.call(c,S)
+  names(S) <- names(env$group.labels)
   
   
   PCM <- cor( env$metadata )
@@ -84,7 +151,7 @@ pipeline.summarySheetsGroups <- function(env)
     
     return(  mean.group.correlations )
   } )
-  colnames(group.correlations) <- colnames(env$indata)
+  colnames(group.correlations) <- names(env$group.labels)
   group.correlations[which(is.nan(group.correlations))] <- 0
     
   
@@ -92,12 +159,12 @@ pipeline.summarySheetsGroups <- function(env)
   par(mfrow=c(2,1))
   par(mar=c(5,3,3,2))
   
-  b<-barplot( S, col=env$group.colors[names(S)], main="Correlation Silhouette", names.arg=if(ncol(env$indata)<80) names(S) else rep("",length(S)), las=2, cex.main=1, cex.lab=1, cex.axis=0.8, cex.names=0.6, border = ifelse(ncol(env$indata)<80,"black",NA), xpd=FALSE, ylim=c(-.25,1) )  
+  b<-barplot( S, col=env$group.colors[names(S)], main="Correlation Silhouette", names.arg=if(ncol(env$metadata)<80) names(S) else rep("",length(S)), las=2, cex.main=1, cex.lab=1, cex.axis=0.8, cex.names=0.6, border = ifelse(ncol(env$metadata)<80,"black",NA), xpd=FALSE, ylim=c(-.25,1) )  
   mtext("S",2,line=1.9,cex=0.8)
   abline( h=c(0,0.25,0.5,0.75), lty=2, col="gray80" )
   title( main= bquote("<" ~ s ~ "> = " ~ .(round(mean(S),2))), line=0.5, cex.main=1 )
   box()
-  points( b, rep(-0.2,ncol(env$indata)), pch=15, cex=1, col=env$groupwise.group.colors[apply( group.correlations[,names(S)], 2, which.max )] )
+  points( b, rep(-0.2,ncol(env$metadata)), pch=15, cex=1, col=env$groupwise.group.colors[apply( group.correlations[,names(S)], 2, which.max )] )
   
   mean.boxes <- by( S, env$group.labels, c )[ unique( env$group.labels ) ]
   mean.mean.S <- sapply( mean.boxes, mean )

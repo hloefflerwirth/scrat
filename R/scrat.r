@@ -5,8 +5,6 @@ scrat.new <- function(preferences=NULL)
   env <- new.env()
   env$color.palette.portraits <- NULL
   env$color.palette.heatmaps <- NULL
-  env$t.ensID.m <- NULL
-  env$Fdr.g.m <- NULL
   env$fdr.g.m <- NULL
   env$files.name <- NULL
   env$gene.info <- NULL
@@ -24,25 +22,22 @@ scrat.new <- function(preferences=NULL)
   env$spot.list.samples <- NULL
   env$spot.list.underexpression <- NULL
   env$indata <- NULL
+  env$indata.ensID.m <- NULL
   env$indata.gene.mean <- NULL
   env$indata.sample.mean <- NULL
+  env$seuratObject <- NULL
+  env$metacell.data <- NULL
   env$metadata <- NULL
-  env$n.0.m <- NULL
   env$output.paths <- NULL
   env$pat.labels <- NULL
   env$p.g.m <- NULL
-  env$p.m <- NULL
   env$perc.DE.m <- NULL
   env$som.result <- NULL
-  env$t.g.m <- NULL
-  env$t.m <- NULL
   env$groupwise.group.colors <- NULL
   env$unique.protein.ids <- NULL
-  env$WAD.g.m <- NULL
   env$pseudotime.trajectory <- NULL
   env$csv.function <- write.csv2
-  env$seuratObject <- NULL
-  
+
 
   # Generate some additional letters
   env$LETTERS <- c(LETTERS, as.vector(sapply(1:10, function(x) {
@@ -64,10 +59,8 @@ scrat.new <- function(preferences=NULL)
                                                     "primary.analysis" = TRUE, 
                                                     "sample.similarity.analysis" = TRUE,
                                                     "geneset.analysis" = TRUE, 
-                                                    "geneset.analysis.exact" = FALSE,
                                                     "group.analysis" = TRUE,
-                                                    "difference.analysis" = TRUE,
-                                                    "seurat" = TRUE ),
+                                                    "difference.analysis" = TRUE),
                           database.biomart = "ENSEMBL_MART_ENSEMBL",
                           database.host = "jan2020.archive.ensembl.org",
                           database.dataset = "auto",
@@ -78,16 +71,13 @@ scrat.new <- function(preferences=NULL)
                           spot.coresize.groupmap = 5,
                           spot.threshold.groupmap = 0.75,
                           adjust.autogroup.number = 0,
-                          pseudotime.estimation = NULL,
-													indata.counts = TRUE,
+                          pseudotime.estimation = TRUE,
 													dim.reduction = "tsne",
                           preprocessing = list(
-                            count.processing = FALSE,
-                            cellcycle.correction = FALSE,
+                            cellcycle.correction = TRUE,
+                            create.meta.cells = FALSE,
                             feature.centralization = TRUE,
-                            sample.quantile.normalization = TRUE,
-                            seurat.normalize = TRUE,
-                            create.meta.cell = FALSE) )
+                            sample.quantile.normalization = TRUE ) )
 
   # Merge user supplied information
   if (!is.null(preferences))
@@ -124,37 +114,24 @@ scrat.run <- function(env)
   #### Preparation & Calculation part ####
   env <- pipeline.checkInputParameters(env)
   if (!env$passedInputChecking) {
-    return()
+    return(env)
   }
   
   if(env$preferences$activated.modules$reporting)
   {
-    # create output dirs
+    # create output directories
     dir.create(paste(env$files.name, "- Results"), showWarnings=FALSE)
     dir.create(paste(env$files.name, "- Results/CSV Sheets"), showWarnings=FALSE)
-
-    if(env$preferences$activated.modules$primary.analysis)
-    {
-      pipeline.qualityCheck(env)
-    } 
   }
   
-  if(env$preferences$activated.modules$seurat){
-    util.info("Process to Seurat Object")
+  if(env$preferences$activated.modules$primary.analysis)
+  {
+    util.info("Preprocessing Seurat Object")
     env <- pipeline.seuratPreprocessing(env)
-    pipeline.summarySheetSeurat(env)
     
-    if (env$preferences$preprocessing$create.meta.cell) {
-      env$indata <- env$metacellData
-      env$group.labels <- rep("auto",ncol(env$metacellData))
-      names(env$group.labels) <- colnames(env$metacellData)
-      
-      env$group.colors <- rep("#000000", ncol(env$metacellData))
-      names(env$group.colors) <- colnames(env$metacellData)
-    }
-    else {
-      env$indata <- env$seuratObject
-    }
+    filename <- paste(env$files.name, "pre.RData")
+    util.info("Saving environment image:", filename)
+    save(env, file=filename)
   }
   
   if(env$preferences$activated.modules$primary.analysis || env$preferences$activated.modules$geneset.analysis)
@@ -165,24 +142,31 @@ scrat.run <- function(env)
   
   if(env$preferences$activated.modules$primary.analysis)
   {
-    if (env$preferences$preprocessing$seurat.normalize)
-    {
-      env <- pipeline.cellcycleProcessing(env)
-    }
+    util.info("Classification of cell cycle phases")   
+    env <- pipeline.cellcycleProcessing(env)
+  }
+  
+  if (env$preferences$preprocessing$create.meta.cells) 
+  {
+    env <- pipeline.createMetacells(env)
+  }
     
+
+  if(env$preferences$activated.modules$primary.analysis)
+  {
     util.info("Processing SOM. This may take several time until next notification.")
-    env <- pipeline.prepareIndata(env)
+    env <- pipeline.prepareIndata(env) 
     env <- pipeline.generateSOM(env)
     
     filename <- paste(env$files.name, "pre.RData")
     util.info("Saving environment image:", filename)
     save(env, file=filename)
-    
+
     util.info("Processing Differential Expression Statistics")
     env <- pipeline.calcStatistics(env)
 
     util.info("Detecting Spots")
-    env <- pipeline.detectSpotsSamples(env)
+    env <- pipeline.detectSpotsSamples(env) 
     env <- pipeline.detectSpotsIntegral(env)
     env <- pipeline.patAssignment(env)
     env <- pipeline.groupAssignment(env)
@@ -203,6 +187,9 @@ scrat.run <- function(env)
     
   if(env$preferences$activated.modules$primary.analysis || env$preferences$activated.modules$geneset.analysis)
   {    
+    env$indata <- NULL 
+    env$indata.ensID.m <- NULL
+    
     filename <- paste(env$files.name, ".RData", sep="")
     util.info("Saving environment image:", filename)
     save(env, file=filename)
@@ -217,53 +204,35 @@ scrat.run <- function(env)
   
   if(env$preferences$activated.modules$reporting)
   {
-    if (exists("seuratObject", envir = env) && !env$preferences$preprocessing$create.meta.cell){
-      if(ncol(env$seuratObject) < 1000)
-      {
-        util.info("Plotting Sample Portraits")
-        pipeline.sampleExpressionPortraits(env)
-      } 
-    } else {
-      if(ncol(env$indata) < 1000)
-      {
-        util.info("Plotting Sample Portraits")
-        pipeline.sampleExpressionPortraits(env)
-      } 
-    }
     
+    pipeline.summarySheetSeurat(env)
     
-    if (exists("seuratObject", envir = env) && !env$preferences$preprocessing$create.meta.cell){
-      if ( env$preferences$activated.modules$sample.similarity.analysis && ncol(env$seuratObject) > 2)
-      {    
-        util.info("Plotting Sample Similarity Analysis")
-        dir.create(file.path(paste(env$files.name, "- Results"), "Sample Similarity Analysis"), showWarnings=FALSE)
-        
-        pipeline.sampleSimilarityAnalysisED(env)
-        pipeline.sampleSimilarityAnalysisCor(env)
-        pipeline.sampleSimilarityAnalysisICA(env)
-      }
+    if(ncol(env$metadata) < 1000)
+    {
+      util.info("Plotting Sample Portraits")
+      pipeline.sampleExpressionPortraits(env)
+    } 
+    
+    if ( env$preferences$activated.modules$sample.similarity.analysis && ncol(env$seuratObject) > 2)
+    {    
+      util.info("Plotting (Meta-)cell Similarity Analyses")
+      dir.create(file.path(paste(env$files.name, "- Results"), "Sample Similarity Analysis"), showWarnings=FALSE)
       
-    } else {
-      if ( env$preferences$activated.modules$sample.similarity.analysis && ncol(env$indata) > 2)
-      {    
-        util.info("Plotting Sample Similarity Analysis")
-        dir.create(file.path(paste(env$files.name, "- Results"), "Sample Similarity Analysis"), showWarnings=FALSE)
-      
-        pipeline.sampleSimilarityAnalysisED(env)
-        pipeline.sampleSimilarityAnalysisCor(env)
-        pipeline.sampleSimilarityAnalysisICA(env)
-      }
+      pipeline.sampleSimilarityAnalysisED(env)
+      pipeline.sampleSimilarityAnalysisCor(env)
+      pipeline.sampleSimilarityAnalysisICA(env)
     }
-    
+      
     util.info("Plotting Summary Sheets (Modules & PATs)")
     pipeline.summarySheetsModules(env)
-      
+
     if(env$preferences$activated.modules$group.analysis && length(unique(env$group.labels)) >= 2)
     {
       util.info("Processing Group-centered Analyses")
-      pipeline.groupAnalysis(env)
+      dir.create(paste(env$files.name, "- Results/Summary Sheets - Groups"), showWarnings=FALSE)
+      pipeline.summarySheetsGroups(env)
     }
-  
+        
 	  if(!is.null(env$preferences$pseudotime.estimation))
 		{
 			util.info("Processing Pseudotime Reports")
@@ -271,9 +240,11 @@ scrat.run <- function(env)
 		}
   
     util.info("Generating HTML Report")
-    pipeline.htmlSummary(env)
+    # pipeline.htmlSummary(env)
     
   }    
     
   util.info("Finished:", format(Sys.time(), "%a %b %d %X"))
+  
+  return(env)
 }

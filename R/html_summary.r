@@ -139,7 +139,7 @@ pipeline.htmlSummary <- function(env)
   close(outfile)
   
  
-  #### bock 1 ####
+  #### block 1 ####
   
   filename <- file.path(paste(env$files.name , "- Results"), "html", "safsari_block1.html")
   outfile <- file(filename, "w")  
@@ -167,23 +167,27 @@ pipeline.htmlSummary <- function(env)
       <h1>Block I: Preprocessing & quality check</h1>
       <h2>Read count preprocessing</h2>", sep="", file=outfile)
 
-  if(env$preferences$preprocessing$count.processing)
-  {
-    cat("Read counts are preprocessed using standard workflow:<br>
-      Cells with library size 3 MAD below median are discarded, as well as cells with number of expressed genes 3 MAD blow median (see p.1 in PDF below).
-      Read counts are then translated to expression values using scale factor normalization (p.2 shows the factors).
+  cat("Read counts are preprocessed using standard workflow:<br>
+    1) Low-quality cells where more than 15% of the read counts come from mitochondrial genome are removed.<br>
+    2) Cells with more than 7000 detected genes are removed
+    3) Read counts are then translated to expression values using scale factor normalization.", sep="", file=outfile)
+  
 
-      <object data=\"../Data Overview/Read count preprocessing.pdf\" type=\"application/pdf\" style=\"width:100%;height:600px;border:1px solid black\"></object>", sep="", file=outfile)
-  } else
-  {
-    cat("skipped", sep="", file=outfile)
-  }
+  cat("<h2>Similarity analyses</h2>
+      t-distributed stochastic neighbor embedding (t-SNE) and Uniform Manifold Approximation and Projection(UMAP) are nonlinear dimensionality reduction techniques projecting cells into a two-dimensional coordinate system.<br>
+      They are colored according to original sample ids and clusters as provided by Seurat.
 
-  cat("<h2>Input data overview</h2>
-      Data distribution (p.1 in PDF below), mean expression vs. variance plot (p.2; inter-quartile ranges (IQR) are shown to identify potential outliers), and individual cells' and group-wise aggregated expression level (p.3) are provided.
-      <object data=\"../Data Overview/Data Distribution.pdf\" type=\"application/pdf\" style=\"width:100%;height:600px;border:1px solid black\"></object>
- 
-      <h2>Cell cycle phase classification</h2>", sep="", file=outfile)
+      <img src=\"../\">
+
+      <object data=\"../Summary Sheets - Groups/Group assignment.pdf\" type=\"application/pdf\" style=\"width:100%;height:600px;border:1px solid black\"></object>
+      <object data=\"../Summary Sheets - Groups/Group assignment.pdf\" type=\"application/pdf\" style=\"width:100%;height:600px;border:1px solid black\"></object>
+      <object data=\"../Summary Sheets - Groups/Group assignment.pdf\" type=\"application/pdf\" style=\"width:100%;height:600px;border:1px solid black\"></object>
+      <object data=\"../Summary Sheets - Groups/Group assignment.pdf\" type=\"application/pdf\" style=\"width:100%;height:600px;border:1px solid black\"></object>", sep="", file=outfile)
+  
+  
+  
+  
+  cat("<h2>Cell cycle phase classification</h2>", sep="", file=outfile)
 
   if(file.exists(file.path(paste(env$files.name , "- Results"), "Data Overview", "Cell cycle phase.pdf")))
   {    

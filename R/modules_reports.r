@@ -89,8 +89,8 @@ modules.report.sheets <- function(env, spot.list, main, path)
   
   par(mar=c(0,0,0,0))
   
-  image(1:ncol(env$indata),
-        1:nrow(spot.list$spotdata),
+  image(1:nrow(sample.spot.expression.image),
+        1:ncol(sample.spot.expression.image),
         sample.spot.expression.image,
         col=env$color.palette.heatmaps(1000),
         axes=FALSE, ylim=0.5+c(0,nrow(spot.list$spotdata)), yaxs="i", xlab="", ylab="",
@@ -98,9 +98,9 @@ modules.report.sheets <- function(env, spot.list, main, path)
   
   box()
   
-  if (ncol(env$indata)<100)
+  if (nrow(sample.spot.expression.image)<100)
   {
-    axis(1, 1:ncol(env$indata), labels=colnames(env$indata), las=2, line=-0.5, tick=0, cex.axis=1.4)
+    axis(1, 1:nrow(sample.spot.expression.image), labels=rownames(sample.spot.expression.image), las=2, line=-0.5, tick=0, cex.axis=1.4)
   }
   
   plot(0, type="n", xlab="", ylab="", axes=FALSE, xlim=c(0,1),
@@ -113,7 +113,7 @@ modules.report.sheets <- function(env, spot.list, main, path)
   
   if (length(unique(env$group.labels)) > 1)
   {
-    image(cbind(1:ncol(env$indata)), col = env$group.colors, axes = FALSE)
+    image(cbind(1:nrow(sample.spot.expression.image)), col = env$group.colors, axes = FALSE)
     box()
   } else
   {
@@ -250,71 +250,38 @@ modules.report.sheets <- function(env, spot.list, main, path)
     par(mar=c(8,3,1,1))
     
     barplot(spot.list$spotdata[m,], col=env$group.colors, main="",
-            names.arg=if (ncol(env$indata)<100) colnames(env$indata) else rep("",ncol(env$indata)),
+            names.arg=if (nrow(sample.spot.expression.image)<100) rownames(sample.spot.expression.image) else rep("",nrow(sample.spot.expression.image)),
             las=2, cex.main=1, cex.lab=1, cex.axis=1, cex.names=0.8,
-            border=if (ncol(env$indata) < 80) "black" else NA)
+            border=if (nrow(sample.spot.expression.image) < 80) "black" else NA)
     
     box()
     
     if (length(spot.list$spots[[m]]$genes) > 0 && length(spot.list$spots[[m]]$genes) < 5000)
     {
-      # Spot Genelist
-      r.genes <- sapply(spot.list$spots[[m]]$genes, function(x)
-      {
-        if(typeof(env$indata)[1] == "S4")
-        {
-          gene <- env$indata@assays$RNA@counts[x,]
-        }
-        else 
-        {
-          gene <- env$indata[x,]
-        }
-        return(suppressWarnings(cor(gene, spot.list$spotdata[m,])))
-      })
-      
-      if(typeof(env$indata)[1] == "S4")
-      {
-        e.max <- apply(env$indata@assays$RNA@counts[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, max, na.rm=TRUE)
-        e.min <- apply(env$indata@assays$RNA@counts[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, min, na.rm=TRUE)
-      }
-      else 
-      {
-        e.max <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, max, na.rm=TRUE)
-        e.min <- apply(env$indata[spot.list$spots[[m]]$genes, ,drop=FALSE], 1, min, na.rm=TRUE)
-      }
-      
-      if (main %in% c("Underexpression Spots"))
-      {
-        o <- names(sort(e.min, decreasing=FALSE))
-      }  else
-      {
-        o <- names(sort(e.max, decreasing=TRUE))
-      }
-      
+
       n.genes <- 20
+      
+      o <- spot.list$spots[[m]]$genes
       o <- o[1:min(n.genes,length(o))]
       
       par(mar=c(0,0,0,0))
       
-      x.coords <- c(0, 0.06, 0.2, 0.28, 0.36, 0.44, 0.52)
+      x.coords <- c(0, 0.06, 0.2, 0.28, 0.44)
       y.coords <- seq(0.75, 0.02, length.out=length(o))
       
       plot(0, type="n", axes=FALSE, xlab="", ylab="", xlim=c(0,1), ylim=c(0,1))
       
       text(0, 0.88, "Spot Genelist", cex=1.8, adj=0)
       
-      text(x.coords, rep(c(0.82, 0.80), 4)[1:7],
-           c("Rank", "ID", "max e", "min e", "r", "Symbol", "Description"),
+      text(x.coords[-3], rep(c(0.82, 0.80), 4)[1:4],
+           c("Rank", "ID", "Symbol", "Description"),
            cex=1, adj=0)
       
       text(x.coords[1], y.coords, c(seq_along(o)), adj=0)
       text(x.coords[2], y.coords, o, cex=0.6, adj=0)
       rect(x.coords[3]-0.02, y.coords[1]+0.01, 1, 0, border="white", col="white")
-      text(x.coords[3], y.coords, round(e.max[o], 2), cex=0.6, adj=0)
-      text(x.coords[4], y.coords, round(e.min[o], 2), cex=0.6, adj=0)
-      text(x.coords[5], y.coords, round(r.genes[o], 2), cex=0.6, adj=0)
-      text(x.coords[6], y.coords, env$gene.info$names[o], cex=0.6, adj=0)
-      text(x.coords[7], y.coords, env$gene.info$descriptions[o], cex=0.6, adj=0)
+      text(x.coords[4], y.coords, env$gene.info$names[o], cex=0.6, adj=0)
+      text(x.coords[5], y.coords, env$gene.info$descriptions[o], cex=0.6, adj=0)
     } else
     {
       frame()
