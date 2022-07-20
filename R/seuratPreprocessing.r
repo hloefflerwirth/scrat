@@ -1,35 +1,35 @@
 pipeline.seuratPreprocessing <- function(env)
 {
   env$seuratObject[["percent.mt"]] <- PercentageFeatureSet(object = env$seuratObject, assay = "RNA", pattern = "^MT-")
-    
+
   # Filtering
   # 1) Low-quality cells where more than 15% of the read counts come from mitochondrial genome
   # 2) Cells with more than 7000 detected genes
-  
+
   dropped.cols = which(env$seuratObject$percent.mt >= 15 | env$seuratObject$nFeature_RNA >= 7000)
 
   env$seuratObject <- subset(env$seuratObject, subset = nFeature_RNA < 7000 & percent.mt < 15)
-    
+
   if (length(dropped.cols) > 0)
   {
     env$group.labels <- env$group.labels[-dropped.cols]
     env$group.colors <- env$group.colors[-dropped.cols]
     util.warn("Filtered",length(dropped.cols),"cells from data set in preprocessing.")
   }
-    
+
   # Normalization & reduction
   env$seuratObject <- NormalizeData(env$seuratObject, assay = 'RNA', normalization.method = "LogNormalize")
   env$seuratObject <- FindVariableFeatures(env$seuratObject, selection.method = "vst", assay = 'RNA')
   env$seuratObject <- ScaleData(env$seuratObject, model.use = 'linear', vars.to.regress = 'orig.ident')
-  
+
   env$seuratObject <- RunPCA(env$seuratObject, npcs = min(ncol(env$seuratObject)-1, 100))
   env$seuratObject <- RunTSNE(env$seuratObject, reduction = "pca", assay = 'RNA', dims = 1:100, perplexity = 5)
   env$seuratObject <- RunUMAP(env$seuratObject, reduction = "pca", assay = 'RNA', dims = 1:100)
-  
+
   # primary cell clustering
   env$seuratObject <- FindNeighbors(env$seuratObject, assay = 'RNA',  dims = 1:100)
   env$seuratObject <- FindClusters(env$seuratObject, resolution = 1)
-  
+
   return(env)
 }
 
@@ -40,16 +40,17 @@ pipeline.cellcycleProcessing <- function(env)
     marker <- list()
     marker$S <- intersect( Seurat::cc.genes.updated.2019$s.genes, rownames(env$seuratObject) )
     marker$G2M <- intersect( Seurat::cc.genes.updated.2019$g2m.genes, rownames(env$seuratObject) )
-  } 
+  }
   else
   {
     if (!biomart.available(env))
     {
       util.warn("Requested biomaRt host seems to be down.")
       util.warn("Disabling classification of cell cycle phase.")
+      env$preferences$preprocessing$cellcycle.correction <- FALSE
       return(env)
     }
-    
+
     if( length(grep("ENSMUSG",row.names(env$seuratObject))>0) )
     {
       # convert human marker names to mouse gene ids
@@ -79,21 +80,23 @@ pipeline.cellcycleProcessing <- function(env)
       } else
       {
         util.warn("Cell cycle markers only available for human and mouse organisms")
+        env$preferences$preprocessing$cellcycle.correction <- FALSE
         return(env)
       }
   }
-  
+
   env$seuratObject <- CellCycleScoring(object = env$seuratObject, g2m.features = marker$G2M, s.features = marker$S)
-  
+
   if( any(is.na(env$seuratObject$S.Score)) || any(is.na(env$seuratObject$G2M.Score)))
   {
     util.warn("Cell cycle classificataion failed. Possibly too few features in data set.")
+    env$preferences$preprocessing$cellcycle.correction <- FALSE
     return(env)
   }
-  
+
   if (env$preferences$preprocessing$cellcycle.correction)
   {
-    util.info("Correction for cell cycle phase") 
+    util.info("Correction for cell cycle phase")
     env$seuratObject <- ScaleData(env$seuratObject, vars.to.regress = c("S.Score", "G2M.Score"), features = rownames(env$seuratObject))
   }
   return(env)
