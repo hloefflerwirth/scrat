@@ -20,14 +20,20 @@ pipeline.seuratPreprocessing <- function(env)
   # Normalization & reduction
   env$seuratObject <- NormalizeData(env$seuratObject, assay = 'RNA', normalization.method = "LogNormalize")
   env$seuratObject <- FindVariableFeatures(env$seuratObject, selection.method = "vst", assay = 'RNA')
-  env$seuratObject <- ScaleData(env$seuratObject, model.use = 'linear', vars.to.regress = 'orig.ident')
+  if( length(unique(env$seuratObject$orig.ident)) > 2 )
+  {
+    env$seuratObject <- ScaleData(env$seuratObject, model.use = 'linear', vars.to.regress = 'orig.ident')
+  } else
+  {
+    env$seuratObject <- ScaleData(env$seuratObject, model.use = 'linear' )
+  }
 
   env$seuratObject <- RunPCA(env$seuratObject, npcs = min(ncol(env$seuratObject)-1, 100))
-  env$seuratObject <- RunTSNE(env$seuratObject, reduction = "pca", assay = 'RNA', dims = 1:100, perplexity = 5)
-  env$seuratObject <- RunUMAP(env$seuratObject, reduction = "pca", assay = 'RNA', dims = 1:100)
+  env$seuratObject <- RunTSNE(env$seuratObject, reduction = "pca", assay = 'RNA', dims = length( env$seuratObject$pca ), perplexity = ifelse( ncol(env$seuratObject)>1000, 5, 3 ) )
+  env$seuratObject <- RunUMAP(env$seuratObject, reduction = "pca", assay = 'RNA', dims = rep(length( env$seuratObject$pca),2), n.neighbors = min(ncol(env$seuratObject)-1, 30 )  )
 
   # primary cell clustering
-  env$seuratObject <- FindNeighbors(env$seuratObject, assay = 'RNA',  dims = 1:100)
+  env$seuratObject <- FindNeighbors(env$seuratObject, assay = 'RNA',  dims = rep( length( env$seuratObject$pca ), 2 ) )
   env$seuratObject <- FindClusters(env$seuratObject, resolution = 1)
 
   return(env)

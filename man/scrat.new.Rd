@@ -14,9 +14,9 @@
     list with the following parameters:
 
     \itemize{
-      \item{indata}: input data matrix containing the expression values or an \code{scater::SCESet} object (see 'Details' and 'Examples')
-      \item{group.labels}: cell assignment to a distinct group, celltype or class (character; "auto" or one label for each cell; may be given with \code{indata SCESet})
-      \item{group.colors}: colors of the cells for visualizations (character; one color for each cell; may be given with \code{indata SCESet})
+      \item{indata}: input data matrix containing the expression values or a \code{Seurat} object (see 'Details' and 'Examples')
+      \item{group.labels}: cell assignment to a distinct group, celltype or class (character; "auto" or one label for each cell)
+      \item{group.colors}: colors of the cells for visualizations (character; one color for each cell)
       \item{dim.1stLvlSom}: dimension of the SOM grid (integer, >5); use "auto" to use size recommendation
       
       \item{database.dataset}: type of ensemble dataset queried using biomaRt interface (character); use "auto" to detect parameter automatically; for details see vignette 
@@ -26,12 +26,10 @@
     
       \item {preprocessing}: activates/deactivates preprocessing steps (list):
         \itemize{
-          \item{count.processing}: enables count filtering and normalization when input data are read counts (boolean).
           \item{cellcycle.correction}: enables removal of cell cycle effect from expression values (only available for human and mouse organisms; boolean).    
-        	\item{feature.centralization}: enables or disables
-            centralization of the features (boolean).
-        	\item{sample.quantile.normalization}: enables quantile
-            normalization of the cells (boolean).
+		  \item{create.meta.cells}: enables creation of meta-cells to speed up SOM training. Downstream analyses will be performed on meta-cells (boolean).
+		  \item{feature.centralization}: enables or disables centralization of the features (boolean).
+          \item{sample.quantile.normalization}: enables quantile normalization of the cells (boolean).
         }
 
       \item{pseudotime.estimation}: parameters for wanderlust pseudotime estimation: NULL deactivates pseudotime analysis, TRUE uses standard parameter setting, or a list:
@@ -48,7 +46,7 @@
 }
 \details{
 scrat requires input of mapped read counts or preprocessed expression data. Additionally, it is recommended to provide group information about the cells (e.g. celltypes), otherwise groups will be assigned automatically based on cells' expression landscapes.
-\code{indata} is to be provided as \code{scater::SCESet} object, or as two-dimensional numerical matrix (columns and rows represent the cells and genes, respectively). scrat can apply read count preprocessing or use preprocessed expression values.
+\code{indata} is to be provided as \code{Seurat} object, or as two-dimensional numerical matrix (columns and rows represent the cells and genes, respectively). scrat can apply read count preprocessing or use preprocessed expression values.
 Please check the vignette for more details on the parameters.
 }
 \value{
@@ -61,8 +59,8 @@ env <- scrat.new(list(dataset.name="Example",
                         standard.spot.modules="kmeans",
                         
                         preprocessing = list(
-                          count.processing = FALSE,
                           cellcycle.correction = FALSE,
+						  create.meta.cells = TRUE,
                           feature.centralization = TRUE,
                           sample.quantile.normalization = TRUE ), 
                         
