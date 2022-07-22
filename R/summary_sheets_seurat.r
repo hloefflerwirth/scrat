@@ -6,10 +6,12 @@ pipeline.summarySheetSeurat <- function(env)
 
   dir.create( file.path(paste(env$files.name, "- Results"), "Data Overview"), showWarnings=FALSE)
 
-  pt.cex <- ifelse(ncol(env$seuratObject)<10000,2,1.2)
+  pt.cex <- 1.2
+  if(ncol(env$seuratObject)<10000) pt.cex <- 2
+  if(ncol(env$seuratObject)<1000) pt.cex <- 4
 
 
-  if( "Phase" %in% names(env$seuratObject) )
+  if( !is( try({ length( env$seuratObject$Phase ) }, silent = T), "try-error" ) )
   {
     filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Cell cycle phase 1.png")
     png(filename, 1500, 1000)
@@ -34,20 +36,41 @@ pipeline.summarySheetSeurat <- function(env)
     par(mar=c(6,5,4,10))
     barplot(table(env$seuratObject$Phase), xlab="cell cycle phase", ylab="cells")
 
-    tab <- t(table(env$seuratObject$Phase, env$seuratObject$orig.ident))
-    tab <- t(apply(tab,1,function(x)x/sum(x)))
-    o <- hclust(dist(tab))
+    if( length(unique(env$seuratObject$group.labels))>1 )
+    {
+      tab <- t(table(env$seuratObject$Phase, env$seuratObject$group.labels))
+      tab <- t(apply(tab,1,function(x)x/sum(x)))
+      o <- hclust(dist(tab))
 
-    par(mar=c(6,5,4,1))
-    image( 1:3, seq(nrow(tab)), z=t(tab[o$order,]),col=env$color.palette.heatmaps(1000),zlim=c(0,1),
-           xlab="cell cycle phase", ylab="", axes=F)
-    axis(2,seq(nrow(tab)), rownames(tab), tick=F, las=2, cex.axis=.8)
-    axis(1,seq(ncol(tab)), colnames(tab), tick=F, las=1, cex.axis=1)
+      par(mar=c(6,5,4,1))
+      image( 1:3, seq(nrow(tab)), z=t(tab[o$order,]),col=env$color.palette.heatmaps(1000),zlim=c(0,1),
+             xlab="cell cycle phase", ylab="", axes=F)
+      axis(2,seq(nrow(tab)), rownames(tab), tick=F, las=2, cex.axis=.8)
+      axis(1,seq(ncol(tab)), colnames(tab), tick=F, las=1, cex.axis=1)
+    }
 
     dev.off()
 
   }
 
+
+  o <- env$seuratObject
+  o$group.labels <- env$group.labels
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Groups - tSNE.png")
+  png(filename, 1500, 1000)
+
+  d <- DimPlot(o, reduction = "tsne", group.by = "group.labels", combine = TRUE, pt.size=pt.cex, cols=env$groupwise.group.colors )
+  print(d)
+
+  dev.off()
+
+  filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Groups - UMAP.png")
+  png(filename, 1500, 1000)
+
+  d <- DimPlot(o, reduction = "umap", group.by = "group.labels", combine = TRUE, pt.size=pt.cex, cols=env$groupwise.group.colors )
+  print(d)
+
+  dev.off()
 
   filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Sample IDs - tSNE.png")
   png(filename, 1500, 1000)

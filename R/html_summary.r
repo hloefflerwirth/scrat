@@ -234,7 +234,8 @@ pipeline.htmlSummary <- function(env)
 
   <h2>Cell cycle phase classification</h2>", sep="", file=outfile)
 
-  if(env$preferences$preprocessing$cellcycle.correction)
+
+  if(file.exists( file.path(paste(env$files.name , "- Results"), "Data Overview", "Cell cycle phase 1.png") ))
   {
     cat("Cell cycle prediction was applied to classify cells into G1 (G1 score above 0.5), G2/M (G2/M score above 0.5) or S phase (otherwise) based on
         expression patterns of pre-trained classifiers.

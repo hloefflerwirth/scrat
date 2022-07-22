@@ -72,7 +72,6 @@ scrat.new <- function(preferences=NULL)
                           spot.threshold.groupmap = 0.75,
                           adjust.autogroup.number = 0,
                           pseudotime.estimation = TRUE,
-													dim.reduction = "tsne",
                           preprocessing = list(
                             cellcycle.correction = TRUE,
                             create.meta.cells = FALSE,

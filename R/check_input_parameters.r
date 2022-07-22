@@ -146,12 +146,6 @@ pipeline.checkInputParameters <- function(env)
     env$preferences$spot.threshold.groupmap <- 0.75
   }
 
-  if (!is.character(env$preferences$dim.reduction) || length(env$preferences$dim.reduction)!=1 ||
-      !env$preferences$dim.reduction %in% c("tsne", "pca", "umap") )
-  {
-    util.warn("Invalid value of \"dim.reduction\". Using \"tsne\"")
-    env$preferences$dim.reduction <- "tsne"
-  }
 
   if (!is.list(env$preferences$preprocessing))
   {
@@ -258,11 +252,11 @@ pipeline.checkInputParameters <- function(env)
   }
 
 
-  if ( "group.labels" %in% names( env$seuratObject ) )
+  if( !is( try({ length( env$seuratObject$group.labels ) }, silent = T), "try-error" ) )
   {
     env$group.labels <- env$seuratObject$group.labels
 
-    if( "group.colors" %in% names( env$seuratObject ) )
+    if( !is( try({ length( env$seuratObject$group.colors ) }, silent = T), "try-error" ) )
       env$group.colors <- env$seuratObject$group.colors
   }
 
