@@ -66,5 +66,7 @@ pipeline.createMetacells <- function(env)
   env$group.colors <- rep("#000000", ncol(env$metacell.data))
   names(env$group.colors) <- colnames(env$metacell.data)
 
+  util.info(paste(ncol(env$metacell.data),"meta-cells were computed.")
+
   return(env)
 }

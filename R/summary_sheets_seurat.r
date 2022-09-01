@@ -54,12 +54,10 @@ pipeline.summarySheetSeurat <- function(env)
   }
 
 
-  o <- env$seuratObject
-  o$group.labels <- env$group.labels
   filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Groups - tSNE.png")
   png(filename, 1500, 1000)
 
-  d <- DimPlot(o, reduction = "tsne", group.by = "group.labels", combine = TRUE, pt.size=pt.cex, cols=env$groupwise.group.colors )
+  d <- DimPlot(env$seuratObject, reduction = "tsne", group.by = "group.labels", combine = TRUE, pt.size=pt.cex, cols=env$groupwise.group.colors )
   print(d)
 
   dev.off()
@@ -67,7 +65,7 @@ pipeline.summarySheetSeurat <- function(env)
   filename <- file.path(paste(env$files.name, "- Results"), "Data Overview", "Groups - UMAP.png")
   png(filename, 1500, 1000)
 
-  d <- DimPlot(o, reduction = "umap", group.by = "group.labels", combine = TRUE, pt.size=pt.cex, cols=env$groupwise.group.colors )
+  d <- DimPlot(env$seuratObject, reduction = "umap", group.by = "group.labels", combine = TRUE, pt.size=pt.cex, cols=env$groupwise.group.colors )
   print(d)
 
   dev.off()
@@ -122,6 +120,7 @@ pipeline.summarySheetSeurat <- function(env)
       x <- x[order(x$p_val_adj)[1:n.genes],] )
 
     seurat.markers.filter <- do.call( c,lapply( seurat.markers.filter, function(x) x$gene ) )
+	seurat.markers.filter <- unique( as.vector(na.omit(seurat.markers.filter )) )
 
     d <- FetchData(env$seuratObject, seurat.markers.filter, slot = "data")
     seurat_clusters <- as.numeric( as.vector(env$seuratObject$seurat_clusters) )
